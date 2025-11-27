@@ -8,7 +8,7 @@
 
 // hello world: p33p100p108p114p111p87p32p111p108p108p101p72oooooooooooo
 
-void ide(){
+void cli(){
     printf("Welcome to PicoStack. Enter commands (or 'exit' to quit)\n");
     struct Stack stack;
     init_stack(&stack);
@@ -34,8 +34,7 @@ void ide(){
 
         // Preprocess input to remove comments and whitespace
         char *cleaned = NULL;
-        int *map = NULL;
-        preprocess_program(input, &cleaned, &map);
+        preprocess_program(input, &cleaned);
         size_t new_len = strlen(cleaned);
 
         // Append new code to persistent program buffer
@@ -48,7 +47,6 @@ void ide(){
         program[program_len] = '\0';
 
         free(cleaned);
-        free(map);
 
         // Interpret using persistent program and PC
         interpret(&stack, program, &pc);
@@ -58,8 +56,43 @@ void ide(){
     free(program);
 }
 
+int main(int argc, char** argv) {
 
-int main() {
-    ide();
+    if (argc == 2) {
+        // --- Run file mode ---
+        const char* filename = argv[1];
+        FILE* fp = fopen(filename, "r");
+        if (!fp) {
+            fprintf(stderr, "Error: Cannot open file '%s'\n", filename);
+            return 1;
+        }
+        // Load entire file
+        fseek(fp, 0, SEEK_END);
+        long size = ftell(fp);
+        fseek(fp, 0, SEEK_SET);
+
+        char* buffer = malloc(size + 1);
+        fread(buffer, 1, size, fp);
+        buffer[size] = '\0';
+        fclose(fp);
+
+        // Preprocess file contents
+        char* cleaned = NULL;
+        preprocess_program(buffer, &cleaned);
+        free(buffer);
+        // Run interpreter with fresh stack and pc=0
+        struct Stack stack;
+        init_stack(&stack);
+        size_t pc = 0;
+
+        interpret(&stack, cleaned, &pc);
+
+        free(stack.arr);
+        free(cleaned);
+        return 0;
+    }
+
+    // --- No file provided = start CLI ---
+    cli();
     return 0;
 }

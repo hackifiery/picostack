@@ -6,18 +6,15 @@
 #include "interpreter.h"
 #include "stack.h"
 
-void preprocess_program(const char *src, char **cleaned_out, int **map_out) {
+void preprocess_program(const char* src, char** cleaned_out) {
     size_t len = strlen(src);
 
-    char *cleaned = malloc(len + 1);
-    int  *map = malloc(len * sizeof(int));
-
+    char* cleaned = malloc(len + 1);
     size_t w = 0; // write index
 
     for (size_t r = 0; r < len; r++) {
 
-        // SKIP comments starting with #
-        // do not produce any addresses in cleaned program.
+        // SKIP comments starting with '#'
         if (src[r] == '#') {
             while (r < len && src[r] != '\n') {
                 r++;
@@ -30,17 +27,14 @@ void preprocess_program(const char *src, char **cleaned_out, int **map_out) {
             continue;
         }
 
-        // Preserve valid command characters
-        cleaned[w] = src[r];
-        map[w] = r;     // cleaned index maps to original index
-        w++;
+        // Keep everything else (commands)
+        cleaned[w++] = src[r];
     }
 
     cleaned[w] = '\0';
-
     *cleaned_out = cleaned;
-    *map_out = map;
 }
+
 
 void interpret(struct Stack *stack, const char *commands, size_t *pc) {
     char debug_msg[64];
