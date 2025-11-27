@@ -1,17 +1,22 @@
 # picostack
-A minimal stack-based programming language. It has one stack and 10 commands (so far) and I don't know how useful it is. It's my first time writing a project in C, so the code might be a bit goofy and not optimized. It's WIP, very buggy, and VERY prone to memory leaks (popping and pushing use ```realloc``` every time).
+A minimal stack-based programming language. It has one stack and 12 commands (so far) and I don't know how useful it is. It's my first time writing a project in C, so the code might be a bit goofy and not optimized. It's WIP, very buggy, and VERY prone to memory leaks (popping and pushing use ```realloc``` every time).
 ## Commands
 ```
 p <num> : Push literal number onto the stack
-a       : Add top two numbers on the stack
-s       : Subtract top two numbers on the stack
+a       : Pop & add top two numbers on the stack then push result back
+s       : Pop & subtract top two numbers on the stack then push result back
 r       : Reverse entire stack
 j       : Jump to address @ top of stack if second-to top is 0 (pops both)
 d       : Duplicate top number on the stack
 w       : Swap top two numbers
-o       : Output top number as character
+o       : Output top number as character & pop
+n       : Output top number as integer & pop
 i       : Input some characters (max 64 bytes) and push them all*
 x       : Discard top number on the stack
+c       : clear the stack
+
+z       : (DEBUG) output the stack
+reset   : (shell only) reset the session
  ```
  <small>\*Bug where inputting prints 2 `>`'s, idk why</small>
  ## Examples
@@ -56,7 +61,7 @@ p0p0j
 ```
 ### cat (with stack error)
 ```
-irp0op4p0j
+irp0op0p4j
 ```
 or
 ```
@@ -65,7 +70,8 @@ r  # reverse cuz stacks are FILO
 p0 # null character so nothing is printed the first time through
 # begin loop
 o  # output char
-p4 # jump addr
 p0 # unconditional jump
+p4 # jump addr
 j  # will eventually terminate on an error...
 ```
+### More in the examples folder

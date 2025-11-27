@@ -96,6 +96,10 @@ void interpret(struct Stack* stack, const char* commands, size_t* pc) {
         case 'o':
             out_stack(stack);
             break;
+        
+        case 'n':
+            out_int_stack(stack);
+            break;
 
         case 'i':
             in_stack(stack);

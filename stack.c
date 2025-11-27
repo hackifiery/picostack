@@ -120,6 +120,11 @@ void out_stack(struct Stack *stack) {
     putchar(output_char);
 }
 
+void out_int_stack(struct Stack *stack) {
+    int output_int = pop_stack(stack);
+    printf("%d", output_int);
+}
+
 void in_stack(struct Stack *stack) { 
     char buf[64];
     scanf("%63s", buf);

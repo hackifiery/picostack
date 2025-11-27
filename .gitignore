@@ -7,3 +7,5 @@
 *.filters
 *.user
 /picostack/
+/picostack
+/pstk
