@@ -24,3 +24,4 @@ void execute_jump(struct Stack *stack, size_t *pc, const char *program_start);
 void out_stack(struct Stack *stack);
 void out_int_stack(struct Stack *stack);
 void in_stack(struct Stack *stack);
+void in_int_stack(struct Stack *stack);

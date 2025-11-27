@@ -151,3 +151,10 @@ void in_stack(struct Stack *stack) {
     }
     return;
 }
+
+// reads input integer and pushes to stack
+void in_int_stack(struct Stack *stack) {
+    int val;
+    scanf("%d", &val);
+    push_stack(stack, val);
+}

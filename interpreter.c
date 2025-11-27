@@ -111,6 +111,10 @@ void interpret(struct Stack* stack, const char* commands, size_t* pc) {
             in_stack(stack);
             break;
 
+        case 'u':
+            in_int_stack(stack);
+            break;
+
         case 'r':
             reverse_stack(stack);
             break;

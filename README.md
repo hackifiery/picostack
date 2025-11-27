@@ -1,5 +1,5 @@
 # picostack
-A minimal stack-based programming language. It has one stack and 12 commands (so far) and I don't know how useful it is. It's my first time writing a project in C, so the code might be a bit goofy and not optimized. It's WIP, very buggy, and VERY prone to memory leaks (popping and pushing use ```realloc``` every time).
+A minimal stack-based programming language. It has one stack and 13 commands (so far) and I don't know how useful it is. It's my first time writing a project in C, so the code might be a bit goofy and not optimized. It's WIP, very buggy, and VERY prone to memory leaks (popping and pushing use ```realloc``` every time).
 ## Commands
 ```
 p <num> : Push literal number onto the stack
@@ -12,6 +12,7 @@ w       : Swap top two numbers
 o       : Output top number as character & pop
 n       : Output top number as integer & pop
 i       : Input some characters (max 64 bytes) and push them all*
+u       : Input one number and push to the stack*
 x       : Discard top number on the stack
 c       : clear the stack
 
