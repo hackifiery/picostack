@@ -17,7 +17,6 @@ void preprocess_program(const char *src, char **cleaned_out, int **map_out) {
     for (size_t r = 0; r < len; r++) {
 
         // SKIP comments starting with #
-        // FIX: we NO LONGER APPEND ANY CHARACTERS from comments, so comments
         // do not produce any addresses in cleaned program.
         if (src[r] == '#') {
             while (r < len && src[r] != '\n') {
@@ -44,7 +43,6 @@ void preprocess_program(const char *src, char **cleaned_out, int **map_out) {
 }
 
 void interpret(struct Stack *stack, const char *commands, size_t *pc) {
-    const char *cmd = commands;
     char debug_msg[64];
     size_t len = strlen(commands);
 
