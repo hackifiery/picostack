@@ -1,3 +1,9 @@
+/*
+* Copyright (c) 2025 
+* hackifiery. All rights reserved.
+* All code licensed under the MIT License.
+*/
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -9,12 +15,14 @@ void init_stack(struct Stack *stack){
     stack->top = -1;
 }
 
+// Push value onto stack
 void push_stack(struct Stack *stack, int val){
     stack->top++;
     stack->arr = (int *)realloc(stack->arr, (stack->top + 1) * sizeof(int));
     stack->arr[stack->top] = val;
 }
 
+// Helper for popping value from stack
 int pop_stack(struct Stack *stack){
     if (stack->top < 0) {
         fprintf(stderr, "Error: Attempt to pop from empty stack.\n");
@@ -26,19 +34,21 @@ int pop_stack(struct Stack *stack){
     return a;
 }
 
+// Duplicate top value on stack
 void dup_stack(struct Stack *stack){
     int a = pop_stack(stack);
     push_stack(stack, a);
     push_stack(stack, a);
 }
 
+// Swap top 2 vals on stack
 void swap_stack(struct Stack *stack){
     int a = pop_stack(stack);
     int b = pop_stack(stack);
     push_stack(stack, b);
     push_stack(stack, a);
 }
-
+// reverses whole stack
 void reverse_stack(struct Stack *stack) {
     int start = 0;
     int end = stack->top;
@@ -51,11 +61,13 @@ void reverse_stack(struct Stack *stack) {
     }
 }
 
+// discard top val on stack
 void discard_stack(struct Stack *stack) {
     stack->arr = (int *)realloc(stack->arr, stack->top * sizeof(int));
     stack->top--;
 }
 
+// debug
 void print_stack(struct Stack *stack, const char *msg) {
     printf("--- %s ---\n", msg);
     if (stack->top == -1) {
@@ -72,6 +84,7 @@ void print_stack(struct Stack *stack, const char *msg) {
     }
 }
 
+// pops and adds top 2 vals & pushes result
 void add_stack(struct Stack *stack) {
     if (stack->top < 1) {
         fprintf(stderr, "Error: Stack needs at least 2 items for ADD.\n");
@@ -82,6 +95,7 @@ void add_stack(struct Stack *stack) {
     push_stack(stack, a + b);
 }
 
+// pops and subtracts top 2 vals & pushes result
 void sub_stack(struct Stack *stack) {
     if (stack->top < 1) {
         fprintf(stderr, "Error: Stack needs at least 2 items for SUBTRACT.\n");
@@ -92,6 +106,7 @@ void sub_stack(struct Stack *stack) {
     push_stack(stack, a - b);
 }
 
+// jump to address (top val) if test val is 0 (2nd to top val)
 void execute_jump(struct Stack *stack, size_t *pc, const char *program_start) {
     if (stack->top < 1) {
         fprintf(stderr, "Error: Stack needs 2 items (Address and Test Value) for JUMP.\n");
@@ -115,16 +130,19 @@ void execute_jump(struct Stack *stack, size_t *pc, const char *program_start) {
     }
 }
 
+// output top val as char
 void out_stack(struct Stack *stack) {
     char output_char = (char)pop_stack(stack);
     putchar(output_char);
 }
 
+// output top val as number
 void out_int_stack(struct Stack *stack) {
     int output_int = pop_stack(stack);
     printf("%d", output_int);
 }
 
+// reads input string and pushes ascii to stack (max 64 bytes)
 void in_stack(struct Stack *stack) { 
     char buf[64];
     scanf("%63s", buf);

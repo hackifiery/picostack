@@ -1,3 +1,6 @@
+# helloworld.pstk: prints hello world to the console.
+# Copyright (c) 2025 hackifiery.
+
 # Push characters for "Hello World!" onto the stack (in reverse order)
 
 p33   # '!' character

@@ -1,3 +1,9 @@
+/*
+* Copyright (c) 2025 
+* hackifiery. All rights reserved.
+* All code licensed under the MIT License.
+*/
+
 #include <stdlib.h>
 #include <stdio.h>    // Include for debugging/error handling
 #include <ctype.h>    // For tolower

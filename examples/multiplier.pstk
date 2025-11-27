@@ -1,3 +1,7 @@
+# multiplier.pstk: Multiplies a * b (3*6 as an example) 
+# and prints the result using addition and jumping.
+# Copyright (c) 2025 hackifiery.
+
 p3  # multiplicand (a)
 p0  # buffer for storing the result
 r   # move multiplicand to the front to also act as a counter

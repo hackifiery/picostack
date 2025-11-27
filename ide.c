@@ -1,3 +1,9 @@
+/*
+* Copyright (c) 2025 
+* hackifiery. All rights reserved.
+* All code licensed under the MIT License.
+*/
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <ctype.h>
@@ -6,8 +12,6 @@
 #include "interpreter.h"
 #include "stack.h"
 
-// hello world: p33p100p108p114p111p87p32p111p108p108p101p72oooooooooooo
-// p3p5rp1srp5ardp23jp0p5jz 
 
 void cli(){
     printf("Welcome to PicoStack. Enter commands (or 'exit' to quit)\n");
