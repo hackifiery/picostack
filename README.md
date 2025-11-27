@@ -1,5 +1,5 @@
 # picostack
-Minimal stack-based programming language. It has one stack and 10 commands (so far) and I don't know how useful it is. It's my first time writing a project in C, so the code might be a bit messy. It's WIP, very buggy, and VERY prone to memory leaks (popping and pushing use ```realloc``` every time).
+A minimal stack-based programming language. It has one stack and 10 commands (so far) and I don't know how useful it is. It's my first time writing a project in C, so the code might be a bit goofy and not optimized. It's WIP, very buggy, and VERY prone to memory leaks (popping and pushing use ```realloc``` every time).
 ## Commands
 ```
 p <num> : Push literal number onto the stack
