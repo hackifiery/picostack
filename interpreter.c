@@ -1,86 +1,105 @@
 #include <stdlib.h>
 #include <stdio.h>    // Include for debugging/error handling
 #include <ctype.h>    // For tolower
+#include <string.h>
 
 #include "interpreter.h"
 #include "stack.h"
 
-void interpret(struct Stack *stack, const char *commands) {
+void preprocess_program(const char *src, char **cleaned_out, int **map_out) {
+    size_t len = strlen(src);
+
+    char *cleaned = malloc(len + 1);
+    int  *map = malloc(len * sizeof(int));
+
+    size_t w = 0; // write index
+
+    for (size_t r = 0; r < len; r++) {
+
+        // SKIP comments starting with #
+        // FIX: we NO LONGER APPEND ANY CHARACTERS from comments, so comments
+        // do not produce any addresses in cleaned program.
+        if (src[r] == '#') {
+            while (r < len && src[r] != '\n') {
+                r++;
+            }
+            continue;
+        }
+
+        // Skip whitespace
+        if (isspace(src[r])) {
+            continue;
+        }
+
+        // Preserve valid command characters
+        cleaned[w] = src[r];
+        map[w] = r;     // cleaned index maps to original index
+        w++;
+    }
+
+    cleaned[w] = '\0';
+
+    *cleaned_out = cleaned;
+    *map_out = map;
+}
+
+void interpret(struct Stack *stack, const char *commands, size_t *pc) {
     const char *cmd = commands;
     char debug_msg[64];
-    // We use a manual loop structure here because the 'p' case changes 'cmd' directly.
-    while (*cmd != '\0') {
-        
-        // 1. Convert to lowercase and process the command character
-        switch (tolower(*cmd)) {
-            
-            // P: Push Literal (Reads an integer following 'p')
-            case 'p': { 
-                cmd++; // Move past 'p'
-                
-                // Skip leading whitespace/separators
-                while (*cmd != '\0' && isspace(*cmd)) {
-                    cmd++;
-                }
-                
+    size_t len = strlen(commands);
+
+     while (*pc < len) {
+        char cmd = tolower(commands[*pc]);
+
+        switch (cmd) {
+            case 'p': {
+                (*pc)++;
                 int val = 0;
-                
-                // Read all subsequent digits until a non-digit is found
-                while (*cmd >= '0' && *cmd <= '9') {
-                    val = val * 10 + (*cmd - '0');
-                    cmd++;
+                while (*pc < len && isdigit(commands[*pc])) {
+                    val = val * 10 + (commands[*pc] - '0');
+                    (*pc)++;
                 }
-                
                 push_stack(stack, val);
-                continue; 
+                continue; // skip (*pc)++ at end
             }
-            
-            // A: Add (a b -> a+b)
-            case 'a': 
+
+            case 'a':
                 add_stack(stack);
                 break;
-                
-            // S: Subtract (a b -> a-b)
-            case 's': 
+
+            case 's':
                 sub_stack(stack);
                 break;
-            
-            // J: Jump (if top == 0, jump to address @ top after pop)
-            case 'j': 
-                execute_jump(stack, &cmd, commands);
-                // snprintf(debug_msg, sizeof(debug_msg), "PC %zu: JUMP (%c)", cmd - commands, *(cmd - 1));
-                // print_stack(stack, debug_msg);
-                // execute_jump modifies cmd, so we handle the loop control inside it.
+
+            case 'j':
+                execute_jump(stack, pc, commands);
                 continue;
-            
-            // D: Duplicate (a -> a a)
-            case 'd': 
+
+            case 'd':
                 dup_stack(stack);
                 break;
-                
-            // W: Swap (a b -> b a)
-            case 'w': 
+
+            case 'w':
                 swap_stack(stack);
                 break;
-                
-            // X: Pop/Discard (a -> )
-            case 'x': 
+
+            case 'x':
                 discard_stack(stack);
                 break;
-            
-            // O: Output (a -> )
-            case 'o': 
+
+            case 'o':
                 out_stack(stack);
                 break;
-            
+            case 'i':
+                in_stack(stack);
+                break;
+            case 'r':
+                reverse_stack(stack);
+                break;
             default:
-                // Ignore unknown characters (e.g., spaces, comments, illegal commands)
                 break;
         }
-        
-        // 2. Advance the program counter to the next command
-        cmd++;
-        // snprintf(debug_msg, sizeof(debug_msg), "PC %zu: %c", cmd - commands, *(cmd - 1));
-        // print_stack(stack, debug_msg);
+
+        (*pc)++;
     }
 }
