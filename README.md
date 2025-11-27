@@ -6,7 +6,7 @@ p <num> : Push literal number onto the stack
 a       : Add top two numbers on the stack
 s       : Subtract top two numbers on the stack
 r       : Reverse entire stack
-j       : Jump to address if top of stack is 0
+j       : Jump to address @ top of stack if second-to top is 0 (pops both)
 d       : Duplicate top number on the stack
 w       : Swap top two numbers
 o       : Output top number as character

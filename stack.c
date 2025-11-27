@@ -98,8 +98,8 @@ void execute_jump(struct Stack *stack, size_t *pc, const char *program_start) {
         return;
     }
 
-    int test_value = pop_stack(stack);
     int target_address = pop_stack(stack);
+    int test_value = pop_stack(stack);
 
     size_t program_length = strlen(program_start);
 

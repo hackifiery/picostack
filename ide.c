@@ -7,6 +7,7 @@
 #include "stack.h"
 
 // hello world: p33p100p108p114p111p87p32p111p108p108p101p72oooooooooooo
+// p3p5rp1srp5ardp23jp0p5jz 
 
 void cli(){
     printf("Welcome to PicoStack. Enter commands (or 'exit' to quit)\n");
@@ -30,6 +31,23 @@ void cli(){
         // Check for 'exit'
         if (strncmp(input, "exit", 4) == 0) {
             break;
+        }
+        if (strncmp(input, "reset", 5) == 0) {
+            // 1. Reset stack
+            free(stack.arr);
+            init_stack(&stack);
+
+            // 2. Reset persistent program
+            free(program);
+            program = NULL;
+            program_len = 0;
+            program_cap = 0;
+
+            // 3. Reset PC
+            pc = 0;
+
+            printf("[State reset]\n");
+            continue;
         }
 
         // Preprocess input to remove comments and whitespace
