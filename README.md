@@ -1,11 +1,11 @@
 # picostack
-A minimal stack-based programming language. It has one stack and 13 commands (so far) and I don't know how useful it is. It's my first time writing a project in C, so the code might be a bit goofy and not optimized. It's WIP, very buggy, and VERY prone to memory leaks (popping and pushing use ```realloc``` every time).
+A minimal stack-based programming language. It has one stack and 15 commands (so far) and I don't know how useful it is. It's my first time writing a project in C, so the code might be a bit goofy and not optimized. It's WIP, very buggy, and VERY prone to memory leaks (popping and pushing use ```realloc``` every time).
 ## Commands
 ```
-p <num> : Push literal number onto the stack
+p <num> : Push literal number onto the stack (if <num> is not provided, pushes 0)
 a       : Pop & add top two numbers on the stack then push result back
 s       : Pop & subtract top two numbers on the stack then push result back
-r       : Reverse entire stack
+v       : Reverse entire stack
 j       : Jump to address @ top of stack if second-to top is 0 (pops both)
 d       : Duplicate top number on the stack
 w       : Swap top two numbers
@@ -15,6 +15,8 @@ i       : Input some characters (max 64 bytes) and push them all*
 u       : Input one number and push to the stack*
 x       : Discard top number on the stack
 c       : clear the stack
+r <num> : Rotate right the top <num> elements
+R <num> : Rotate left the top <num> elements
 
 z       : (DEBUG) output the stack
 reset   : (shell only) reset the session
@@ -25,7 +27,6 @@ reset   : (shell only) reset the session
 ```
 p33p100p108p114p111p87p32p111p108p108p101p72oooooooooooo
 ```
-or a more intuitive version:
 
 ### Infinite loop
 ```

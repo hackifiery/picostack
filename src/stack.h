@@ -25,3 +25,5 @@ void out_stack(struct Stack *stack);
 void out_int_stack(struct Stack *stack);
 void in_stack(struct Stack *stack);
 void in_int_stack(struct Stack *stack);
+void rot_right_stack(struct Stack *stack, int n);
+void rot_left_stack(struct Stack *stack, int n);

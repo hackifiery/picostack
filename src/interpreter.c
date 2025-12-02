@@ -45,9 +45,10 @@ void preprocess_program(const char* src, char** cleaned_out) {
 void interpret(struct Stack* stack, const char* commands, size_t* pc) {
     char debug_msg[64];
     size_t len = strlen(commands);
+    int val;
 
     while (*pc < len) {
-        char cmd = tolower(commands[*pc]);
+        char cmd = /*tolower(*/commands[*pc];/*);*/
 
 		// multi digit number handling
         if (isdigit(cmd)) {
@@ -72,6 +73,8 @@ void interpret(struct Stack* stack, const char* commands, size_t* pc) {
                 (*pc)++;
             }
             push_stack(stack, val);
+            // printf("%d ", ((int)*pc-1));
+            // print_stack(stack, commands[*pc-1] == '\n' ? "Executed Command: \\n" : (char[]){commands[*pc-1], '\0'});
             continue; // skip (*pc)++ at end
         }
 
@@ -85,6 +88,8 @@ void interpret(struct Stack* stack, const char* commands, size_t* pc) {
 
         case 'j':
             execute_jump(stack, pc, commands);
+            // printf("%d ", ((int)*pc-1));
+            // print_stack(stack, commands[*pc-1] == '\n' ? "Executed Command: \\n" : (char[]){commands[*pc-1], '\0'});
             continue;
 
         case 'd':
@@ -115,7 +120,7 @@ void interpret(struct Stack* stack, const char* commands, size_t* pc) {
             in_int_stack(stack);
             break;
 
-        case 'r':
+        case 'v':
             reverse_stack(stack);
             break;
 
@@ -128,11 +133,32 @@ void interpret(struct Stack* stack, const char* commands, size_t* pc) {
                 discard_stack(stack);
             }
             break;
+        case 'r':
+            (*pc)++;
+            val = 0;
+            while (*pc < len && isdigit(commands[*pc])) {
+                val = val * 10 + (commands[*pc] - '0');
+                (*pc)++;
+            }
+            rot_right_stack(stack, val);
+            continue;
+        
+        case 'R':
+            (*pc)++;
+            val = 0;
+            while (*pc < len && isdigit(commands[*pc])) {
+                val = val * 10 + (commands[*pc] - '0');
+                (*pc)++;
+            }
+            rot_left_stack(stack, val);
+            continue;
 
         default:
             break;
         }
 
         (*pc)++;
+        // printf("%d ", ((int)*pc-1));
+        // print_stack(stack, commands[*pc-1] == '\n' ? "Executed Command: \\n" : (char[]){commands[*pc-1], '\0'});
     }
 }

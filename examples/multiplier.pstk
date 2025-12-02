@@ -1,38 +1,25 @@
-# multiplier.pstk: Multiplies a * b (3*6 as an example) 
-# and prints the result using addition and jumping.
+# multiplier.pstk: Multiplies two numbers from user input
+# and prints the result.
 # Copyright (c) 2025 hackifiery.
 
-p3  # multiplicand (a)
-p0  # buffer for storing the result
-r   # move multiplicand to the front to also act as a counter
+p0  # result buffer
+uu  # get user input (multiplicand, multiplier)
+# BEGIN LOOP
+p1  # prep for counter decrement
+s   # decrement counter (aka user input #2)
+w   # swap top 2 vals
+d   # duplicate value we will add (will get consumed)
+R4  # rotate so buffer is in front
+a   # add value to buffer
+v   # reverse stack to manipulate counter
+d   # duplicate counter because it will be consumed by jump
+p23 # result printing secion address
+j   # jump to result printing section if counter reaches 0
+p0  # 0 for unconditional jump
+p4  # 4 is the address of the loop start
+j   # loop again if counter hasn't reached 0
+# END LOOP
 
-# loop (will loop for a times)
-
-p1  # we will subtract 1 from the counter/multiplicand (our plan is to stop when it reaches 0)
-s   # subtract
-r   # place the buffer in front for modification
-p6  # multiplier (b)
-a   # add the multiplier once
-r   # reverse so the counter is in front
-d   # duplicate counter since it will be popped by the jump command
-
-# if statement
-
-p23 # address which prints out the result
-j   # break out of loop & jump to the result printing section if the duplicated counter reaches 0 (meaning we have added b a times)
-
-# end if statement
-
-# else statement
-
-p0  # unconditional jump (will only execute if counter is not = to 0 since it would have already jumped to 23)
-p5  # address 5 (the p command on line 5)
-j   # jump back & continue loop
-
-# end else statement
-# end loop
-
-# result printing
-
-x   # remove the remaining 0 from the counter
-n   # output result
+xxn # result printing section: pop counter and the multiplicand and print result
+p10 # newline
+o   # output
