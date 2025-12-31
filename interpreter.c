@@ -1,138 +1,45 @@
-/*
-* Copyright (c) 2025 
-* hackifiery. All rights reserved.
-* All code licensed under the MIT License.
-*/
-
 #include <stdlib.h>
-#include <stdio.h>    // Include for debugging/error handling
-#include <ctype.h>    // For tolower
-#include <string.h>
+#include <stdbool.h>
+#include <fstream>
+#include <sys/stat.h>
 
-#include "interpreter.h"
+#include "parser.h"
 #include "stack.h"
 
-void preprocess_program(const char* src, char** cleaned_out) {
-    size_t len = strlen(src);
+#define _CRT_SECURE_NO_WARNINGS
 
-    char* cleaned = malloc(len + 1);
-    size_t w = 0; // write index
+#define cmd(x) else if (strcmp(func,x)==0)
+#define loop_params(i) for (int i = 0; i < params_len; i++)
+#define picostack_ext ".pcs"
 
-    for (size_t r = 0; r < len; r++) {
+// ip, in_function, function_count, and curr_function must be refs, functions must be malloc'ed
+void interpret_line(Call code, const int in_size, int* ip, Function* functions, bool* in_function, int* function_count, Function* curr_function, struct Stack* stack, const char** include_paths) {
+	// if (!(code.func.isExtern)) exit(EXIT_FAILURE);
+	if (*in_function && strcmp(code.func.name, "endfunc") != 0) return; // don't run stuff in function defs, unless it ends the function
 
-        // SKIP comments starting with '#'
-        if (src[r] == '#') {
-            while (r < len && src[r] != '\n') {
-                r++;
-            }
-            continue;
-        }
+	char* func = code.func.name;
+	int* params = code.params;
+	int params_len = code.params_len;
+	char* params_char = code.params_char;
+	bool isExtern = code.func.isExtern;
 
-        // Skip whitespace
-        if (isspace(src[r])) {
-            continue;
-        }
-
-        // Keep everything else (commands)
-        cleaned[w++] = src[r];
-    }
-
-    cleaned[w] = '\0';
-    *cleaned_out = cleaned;
-}
-
-
-void interpret(struct Stack* stack, const char* commands, size_t* pc) {
-    char debug_msg[64];
-    size_t len = strlen(commands);
-
-    while (*pc < len) {
-        char cmd = tolower(commands[*pc]);
-
-		// multi digit number handling
-        if (isdigit(cmd)) {
-            int value = 0;
-
-            // Read full integer
-            while (*pc < len && isdigit(commands[*pc])) {
-                value = value * 10 + (commands[*pc] - '0');
-                (*pc)++;
-            }
-
-            push_stack(stack, value);
-            continue;   // IMPORTANT: skip (*pc)++ at end
-        }
-
-        switch (cmd) {
-        case 'p': {
-            (*pc)++;
-            int val = 0;
-            while (*pc < len && isdigit(commands[*pc])) {
-                val = val * 10 + (commands[*pc] - '0');
-                (*pc)++;
-            }
-            push_stack(stack, val);
-            continue; // skip (*pc)++ at end
-        }
-
-        case 'a':
-            add_stack(stack);
-            break;
-
-        case 's':
-            sub_stack(stack);
-            break;
-
-        case 'j':
-            execute_jump(stack, pc, commands);
-            continue;
-
-        case 'd':
-            dup_stack(stack);
-            break;
-
-        case 'w':
-            swap_stack(stack);
-            break;
-
-        case 'x':
-            discard_stack(stack);
-            break;
-
-        case 'o':
-            out_stack(stack);
-            break;
-        
-        case 'n':
-            out_int_stack(stack);
-            break;
-
-        case 'i':
-            in_stack(stack);
-            break;
-
-        case 'u':
-            in_int_stack(stack);
-            break;
-
-        case 'r':
-            reverse_stack(stack);
-            break;
-
-        case 'z':
-            print_stack(stack, "Debug Stack:");
-            break;
-
-        case 'c':
-            while (stack->top != -1) {
-                discard_stack(stack);
-            }
-            break;
-
-        default:
-            break;
-        }
-
-        (*pc)++;
-    }
+	if (false); // so that the else if macros work
+	cmd("startfunc") {
+		(*function_count)++;
+		functions = (Function*)realloc(functions, *function_count);
+		functions[(*function_count) - 1].name = params[0];
+		functions[(*function_count) - 1].isExtern = false;
+		functions[(*function_count) - 1].paramCount = -1; // inf # of params (will be changed if a parameter spec is present)
+		functions[(*function_count) - 1].start = *(ip)+1;
+		*in_function = true;
+		*curr_function = functions[(*function_count) - 1];
+	}
+	cmd("push") {
+		loop_params(i) {
+			push_stack(stack, i);
+		}
+	}
+	cmd("discard") {
+		discard_stack(stack);
+	}
 }

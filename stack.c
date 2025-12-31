@@ -22,7 +22,7 @@ void push_stack(struct Stack *stack, int val){
     stack->arr[stack->top] = val;
 }
 
-// Helper for popping value from stack
+// for popping value from stack
 int pop_stack(struct Stack *stack){
     if (stack->top < 0) {
         fprintf(stderr, "Error: Attempt to pop from empty stack.\n");
