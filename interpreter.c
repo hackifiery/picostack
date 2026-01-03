@@ -12,6 +12,7 @@
 #define ic (*ip)++
 #define trace(...) fprintf(stderr, __VA_ARGS__)
 
+
 typedef struct {
     struct Stack ip_stk;
     struct Stack file_stk; // all numbers pointing to indexes in paths (since our struct Stack doesn't support strings & im lazy to reimplement it)
@@ -68,9 +69,7 @@ void interpret_line(
         trace("[call] params_char='%s'\n", code.params_char);
     }
 
-    /* --------------------------
-       Skip execution inside func
-    -------------------------- */
+    // Skip execution inside func
     if (*in_function && strcmp(code.func.name, "endfunc") != 0) {
         trace("[skip] inside function definition\n");
         trace("[skip] ignoring '%s'\n", code.func.name);
@@ -330,6 +329,7 @@ int main(void) {
         include_paths
     );
 
-    printf("Stack top = %d\n", get_stack(&stack));
+    printf("Stack top = %d\n\n", get_stack(&stack));
+    print_stack(&stack, "full stack:");
     return 0;
 }
