@@ -147,6 +147,7 @@ char** split_str(const char* str, const char* delims, int* count_out) {
 
     tokens[count] = NULL; // null-termination
     *count_out = count;
+    // printf("after lexer split: %s\n", strdup(tokens));
     return tokens;
 
 error_cleanup:

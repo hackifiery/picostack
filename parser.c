@@ -21,106 +21,179 @@ typedef struct {
     char* params_char; // used for includes and specs
 } Call;
 */
-Call parse_line(const lexTok* code, const int in_size) {
-    Call out;
-    memset(&out, 0, sizeof(Call)); // Initialize to zero
+#define trace(...) fprintf(stderr, __VA_ARGS__)
 
-    // Validate input
-    if (code == NULL || in_size == 0) {
-        fprintf(stderr, "Parser Error: Invalid input\n");
+Call parse_line(const lexTok* code, const int in_size) {
+    trace("\n=== parse_line BEGIN ===\n");
+
+    Call out;
+    memset(&out, 0, sizeof(Call));
+    trace("[init] Call struct zeroed\n");
+
+    /* --------------------------
+       Input validation
+    -------------------------- */
+    if (!code) {
+        trace("[error] code == NULL\n");
+        exit(EXIT_FAILURE);
+    }
+    if (in_size == 0) {
+        trace("[error] in_size == 0\n");
         exit(EXIT_FAILURE);
     }
 
-    lexTokType type = code[0].type;
+    trace("[input] token count = %d\n", in_size);
+    trace("[input] head token: type=%d val='%s'\n",
+          code[0].type, code[0].val);
 
-    // Validate first token type
-    assert(type == Func || type == Keyw || type == Spec || type == Include);
+    lexTokType head = code[0].type;
+    assert(head == Func || head == Keyw || head == Spec || head == Include);
 
-    // Set function name based on type
-    if (type == Func || type == Keyw) {
-        out.func.name = strdup(code[0].val); // Must duplicate!
-        out.func.isExtern = (type == Keyw);
-    }
-    else if (type == Spec) {
+    /* --------------------------
+       Determine call kind
+    -------------------------- */
+    bool is_startfunc = false;
+
+    if (head == Func || head == Keyw) {
+        trace("[call] function/keyword detected\n");
+
+        out.func.name = strdup(code[0].val);
+        trace("[call] function name = '%s'\n", out.func.name);
+
+        out.func.isExtern = (head == Keyw);
+        trace("[call] isExtern = %s\n",
+              out.func.isExtern ? "true" : "false");
+
+        is_startfunc = (strcmp(code[0].val, "startfunc") == 0);
+        trace("[call] is_startfunc = %s\n",
+              is_startfunc ? "true" : "false");
+
+    } else if (head == Spec) {
+        trace("[call] spec directive detected\n");
         out.func.name = strdup("_spec");
-        out.func.isExtern = false;
-    }
-    else if (type == Include) {
+
+    } else if (head == Include) {
+        trace("[call] include directive detected\n");
         out.func.name = strdup("_inc");
-        out.func.isExtern = false;
     }
 
-    // Parse parameters based on type
-    if (type == Include || type == Spec) {
-        // For Include/Spec, store the identifier as string
-        out.params = NULL;
-        out.params_len = strlen(code[0].val);
+    /* --------------------------
+       Include / Spec handling
+    -------------------------- */
+    if (head == Include || head == Spec) {
+        trace("[include/spec] capturing string payload\n");
+
         out.params_char = strdup(code[0].val);
-        out.func.paramCount = 1; // One string parameter
-    }
-    else if (type == Func || type == Keyw) {
-        // Parse function parameters
-        out.params_char = NULL;
+        out.params_len = (int)strlen(out.params_char);
+        out.func.paramCount = 1;
 
-        // Count and collect parameters
-        int param_capacity = 10;
-        out.params = (int*)malloc(param_capacity * sizeof(int));
-        out.params_len = 0;
+        trace("[include/spec] params_char='%s'\n", out.params_char);
+        trace("[include/spec] paramCount=1\n");
+        trace("=== parse_line END (early return) ===\n");
 
-        // Iterate through tokens until we hit endCall
-        for (int i = 1; i < in_size && code[i].type != endCall; i++) {
-            if (code[i].type == Num) {
-                // Integer parameter
-                int val = atoi(code[i].val);
-
-                // Ensure capacity
-                if (out.params_len >= param_capacity) {
-                    param_capacity *= 2;
-                    out.params = (int*)realloc(out.params, param_capacity * sizeof(int));
-                    if (out.params == NULL) {
-                        fprintf(stderr, "Parser Error: Memory allocation failed\n");
-                        exit(EXIT_FAILURE);
-                    }
-                }
-
-                out.params[out.params_len++] = val;
-            }
-            else if (code[i].type == String) {
-                // String parameter - convert to int array (character codes)
-                int str_len = 0;
-                int* str_params = string_to_params(code[i].val, &str_len);
-
-                // Ensure capacity for all characters
-                while (out.params_len + str_len > param_capacity) {
-                    param_capacity *= 2;
-                    out.params = (int*)realloc(out.params, param_capacity * sizeof(int));
-                    if (out.params == NULL) {
-                        fprintf(stderr, "Parser Error: Memory allocation failed\n");
-                        exit(EXIT_FAILURE);
-                    }
-                }
-
-                // Copy string characters as integers
-                memcpy(out.params + out.params_len, str_params, str_len * sizeof(int));
-                out.params_len += str_len;
-
-                free(str_params);
-            }
-            else if (code[i].type == Func || code[i].type == Keyw) {
-                fprintf(stderr, "Parser Error: Nested function calls not supported\n");
-                exit(EXIT_FAILURE);
-            }
-        }
-
-        out.func.paramCount = out.params_len;
-
-        // If no parameters, free the array
-        if (out.params_len == 0) {
-            free(out.params);
-            out.params = NULL;
-        }
+        return out;
     }
 
+    /* --------------------------
+       Parameter parsing setup
+    -------------------------- */
+    int cap = 8;
+    out.params = malloc(cap * sizeof(int));
+    out.params_len = 0;
+    out.params_char = NULL;
+
+    trace("[params] initial capacity = %d\n", cap);
+
+    /* --------------------------
+       Parse tokens
+    -------------------------- */
+    for (int i = 1; i < in_size && code[i].type != endCall; i++) {
+        lexTok tok = code[i];
+
+        trace("[token %d] type=%d val='%s'\n",
+              i, tok.type, tok.val);
+
+        switch (tok.type) {
+
+        case Num: {
+            if (out.params_len == cap) {
+                cap *= 2;
+                trace("[params] realloc to %d\n", cap);
+                out.params = realloc(out.params, cap * sizeof(int));
+            }
+
+            int v = atoi(tok.val);
+            out.params[out.params_len++] = v;
+
+            trace("[params] pushed int %d (len=%d)\n",
+                  v, out.params_len);
+            break;
+        }
+
+        case String:
+            if (is_startfunc) {
+                trace("[string] startfunc name detected\n");
+
+                if (out.params_char != NULL) {
+                    trace("[error] startfunc already has a name\n");
+                    exit(EXIT_FAILURE);
+                }
+
+                out.params_char = strdup(tok.val);
+                trace("[string] startfunc name='%s'\n",
+                      out.params_char);
+            } else {
+                trace("[string] converting string to char codes\n");
+
+                int slen = 0;
+                int* chars = string_to_params(tok.val, &slen);
+
+                trace("[string] string length=%d\n", slen);
+
+                while (out.params_len + slen > cap) {
+                    cap *= 2;
+                    trace("[params] realloc to %d\n", cap);
+                    out.params = realloc(out.params, cap * sizeof(int));
+                }
+
+                memcpy(out.params + out.params_len,
+                       chars,
+                       slen * sizeof(int));
+
+                out.params_len += slen;
+                trace("[params] appended %d chars (len=%d)\n",
+                      slen, out.params_len);
+
+                free(chars);
+            }
+            break;
+
+        case Func:
+        case Keyw:
+            trace("[error] nested call '%s' not supported\n", tok.val);
+            exit(EXIT_FAILURE);
+
+        default:
+            trace("[skip] token ignored\n");
+            break;
+        }
+    }
+
+    /* --------------------------
+       Finalization
+    -------------------------- */
+    out.func.paramCount =
+        is_startfunc ? 1 : out.params_len;
+
+    trace("[final] paramCount=%d\n", out.func.paramCount);
+
+    if (out.params_len == 0) {
+        trace("[final] no numeric params, freeing array\n");
+        free(out.params);
+        out.params = NULL;
+    }
+
+    trace("=== parse_line END ===\n");
     return out;
 }
 
@@ -163,7 +236,7 @@ void print_call(const Call* call) {
 }
 
 // Test the parser
-int main(void) {
+static int test(void) {
     printf("=== Parser Tests ===\n\n");
 
     // Test 1: Include

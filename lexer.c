@@ -2,158 +2,84 @@
 #include <stdbool.h>
 #include <string.h>
 #include <stdio.h>
-#include <errno.h>
 
 #include "lexer.h"
 #include "helpers.h"
 
 #define _CRT_SECURE_NO_WARNINGS
 
-extern char Funcs[10][10] = {
+char Funcs[][10] = {
     "push",
     "discard",
-    "startFunc",
-    "endFunc"
+    "startfunc",
+    "endfunc"
 };
 
-
-/*
-
-bool validName(const char* str) {
-    if (str == NULL || *str == '\0') return false;
-    if (!isalpha((unsigned char)str[0])) return false;
-    for (size_t i = 1; i < strlen(str); i++) {
-        if (!isalnum((unsigned char)str[i])) return false;
-    }
-    return true;
-}
-*/
-
-
-
 lexTok* lex_line(char* code_raw_, int size, int* toks_size_out) {
-    if (size <= 0 || code_raw_[size - 1] != ';') {
+    if (size <= 0 || code_raw_[size - 2] != ';') {
         fprintf(stderr, "Lexer Error: Line must end with ';'\n");
         exit(EXIT_FAILURE);
     }
 
+    // Copy input and remove trailing semicolon
     char* code_raw = strdup(code_raw_);
-    code_raw[size - 1] = '\0'; // remove semicolon
+    code_raw[size - 2] = '\0';
 
     int split_size = 0;
+
+    // do NOT split on quotes
     char** code = split_str(code_raw, " (),", &split_size);
+
     int toksSize = 0;
     lexTok* toks = NULL;
 
     for (int i = 0; i < split_size; i++) {
         char* curr = code[i];
+        if (!curr || *curr == '\0') continue;
 
-        if (curr == NULL || strlen(curr) == 0) continue;
+        lexTok tok;
+        tok.val = NULL;
 
-        lexTok new_tok;
-        bool found = false;
-        char* token_value = NULL;
-
-        // Check for Include (@)
         if (*curr == '@') {
-            new_tok.type = Include;
-            // Skip the '@' character
-            token_value = strdup(curr + 1);
-            found = true;
+            tok.type = Include;
+            tok.val = strdup(curr + 1);
         }
-        // Check for Spec (?)
         else if (*curr == '?') {
-            new_tok.type = Spec;
-            // Skip the '?' character
-            token_value = strdup(curr + 1);
-            found = true;
+            tok.type = Spec;
+            tok.val = strdup(curr + 1);
         }
-        // Check for Keyword
         else if (isKeyw(curr)) {
-            new_tok.type = Keyw;
-            token_value = strdup(curr);
-            found = true;
+            tok.type = Keyw;
+            tok.val = strdup(curr);
         }
-        // Check for Number
         else if (isInt(curr)) {
-            new_tok.type = Num;
-            token_value = strdup(curr);
-            found = true;
+            tok.type = Num;
+            tok.val = strdup(curr);
         }
-        // Check for String
         else if (isString(curr)) {
-            char* curr_dup = strdup(curr);
-            process_str_tok(curr_dup);
-            new_tok.type = String;
-            token_value = curr_dup;
-            found = true;
+            tok.type = String;
+            tok.val = strdup(curr);
+            process_str_tok(tok.val);
         }
-        // Otherwise it's a Function name
         else {
-            new_tok.type = Func;
-            token_value = strdup(curr);
-            found = true;
+            tok.type = Func;
+            tok.val = strdup(curr);
         }
 
-        if (found) {
-            new_tok.val = token_value;
-            toks = (lexTok*)safe_realloc((char*)toks, (toksSize + 1) * sizeof(lexTok));
-            toks[toksSize] = new_tok;
-            toksSize++;
-        }
+        toks = safe_realloc(toks, (toksSize + 1) * sizeof(lexTok));
+        toks[toksSize++] = tok;
     }
 
-    // Append the end call token
-    lexTok end;
-    end.type = endCall;
-    end.val = NULL;
-    toks = (lexTok*)safe_realloc((char*)toks, (toksSize + 1) * sizeof(lexTok));
-    toks[toksSize] = end;
-    toksSize++;
+    // End-of-call token
+    lexTok end = { .type = endCall, .val = NULL };
+    toks = safe_realloc(toks, (toksSize + 1) * sizeof(lexTok));
+    toks[toksSize++] = end;
 
     // Cleanup
-    if (code != NULL) {
-        for (int i = 0; i < split_size; i++) {
-            free(code[i]);
-        }
-        free(code);
-    }
+    for (int i = 0; i < split_size; i++) free(code[i]);
+    free(code);
     free(code_raw);
 
     *toks_size_out = toksSize;
     return toks;
-}
-
-const char* get_token_type_string(lexTokType type) {
-    switch (type) {
-    case Keyw: return "Keyw";
-    case String: return "String";
-    case Num: return "Num";
-    case Func: return "Func";
-    case Include: return "Include";
-    case Spec: return "Specifier";
-    case endCall: return "Colon (end of call)";
-    default: return "Unknown";
-    }
-}
-
-int test(void) {
-    int sz = 0;
-
-    char input[] = "@stdlib;";
-    lexTok* tokens = lex_line(input, (int)strlen(input), &sz);
-
-    if (tokens != NULL) {
-        for (int i = 0; i < sz; i++) {
-            printf("Token %d: %s (Value: %s)\n", i, get_token_type_string(tokens[i].type), tokens[i].val);
-        }
-
-        // Cleanup
-        for (int i = 0; i < sz; i++) {
-            free(tokens[i].val);
-        }
-        free(tokens);
-    }
-
-    return 0;
 }

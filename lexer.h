@@ -15,6 +15,6 @@ typedef struct {
     char* val;
 } lexTok;
 
-char Funcs[10][10];
+extern char Funcs[10][10];
 
 lexTok* lex_line(char* code_raw_, int size, int* toks_size_out);

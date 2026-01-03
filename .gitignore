@@ -9,3 +9,6 @@
 /picostack/
 /picostack
 /pstk
+/helpers
+/lexer
+/parser
