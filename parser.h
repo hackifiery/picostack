@@ -1,4 +1,5 @@
 #pragma once
+#include <stdbool.h>
 
 #include "lexer.h"
 
@@ -6,6 +7,7 @@ typedef struct {
     char* name;         // Function name (must be freed)
     int paramCount;     // Number of parameters
     bool isExtern;      // True if builtin/keyword, false if user-defined
+    char* fname;        // file it was defined in
     int start;          // addresses of start
     int end;            // and end of def (not including startfunc)
 } Function;

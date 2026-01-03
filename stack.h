@@ -13,6 +13,7 @@ struct Stack {
 void init_stack(struct Stack *stack);
 void push_stack(struct Stack *stack, int val);
 int pop_stack(struct Stack *stack);
+int get_stack(struct Stack* stack);
 void dup_stack(struct Stack *stack);
 void swap_stack(struct Stack *stack);
 void reverse_stack(struct Stack *stack);

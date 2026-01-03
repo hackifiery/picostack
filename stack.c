@@ -34,6 +34,15 @@ int pop_stack(struct Stack *stack){
     return a;
 }
 
+// get top val w/o popping
+int get_stack(struct Stack* stack) {
+    if (stack->top < 0) {
+        fprintf(stderr, "Error: Attempt to get from empty stack.\n");
+        exit(EXIT_FAILURE);
+    }
+    return stack->arr[stack->top];
+}
+
 // Duplicate top value on stack
 void dup_stack(struct Stack *stack){
     int a = pop_stack(stack);

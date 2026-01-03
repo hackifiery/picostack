@@ -46,7 +46,7 @@ void interpret_line(
         trace("[init] file=%s ip=%d\n", *curr_file, *ip);
 
         // push a new file index into the file stack
-        push_stack(&call_stk->file_stk, call_stk->file_stk.top);
+        push_stack(&call_stk->file_stk, call_stk->file_stk.top + 1);
 
         // ensure paths array is large enough
         int path_idx = call_stk->file_stk.top; // top after push
@@ -110,12 +110,13 @@ void interpret_line(
 
         f->name = strdup(params_char);
         f->isExtern = false;
+        f->fname = strdup(*curr_file);
         f->paramCount = -1;
         f->start = *ip + 1;
         f->end = -1;
 
         trace("[func] defined function '%s'\n", f->name);
-        trace("[func] start ip = %d\n", f->start);
+        trace("[func] start ip=%d, file=%s\n", f->start, strdup(curr_file));
 
         *in_function = true;
         *curr_function = f;
@@ -127,28 +128,41 @@ void interpret_line(
     }
 
     /* ==========================
-       endfunc
+           endfunc
     ========================== */
     cmd("endfunc") {
         trace("[exec] endfunc\n");
 
-        if (*in_function) {
+        if (*in_function) { // end def
             (*curr_function)->end = *ip;
-            trace("[func] function '%s' end ip = %d\n",
-                  (*curr_function)->name,
-                  (*curr_function)->end);
+            trace("[func] function '%s' end ip = %d\n", (*curr_function)->name, (*curr_function)->end);
 
             *in_function = false;
             *curr_function = NULL;
-
             trace("[state] in_function = false\n");
-        } else {
-            trace("[warn] endfunc outside function\n");
+
+            (*ip)++;  // continue after endfunc definition
+            trace("[ip] advanced to %d\n", *ip);
+            return;
         }
 
-        (*ip)++;
-        trace("[ip] advanced to %d\n", *ip);
+        // end call
+        trace("[func caller] function call ended\n");
+        int ret_ip = pop_stack(&call_stk->ip_stk);
+        int file_idx = pop_stack(&call_stk->file_stk);
+        *curr_file = call_stk->paths[file_idx];
+        trace("[func caller] returning to ip=%d, file=%s\n", ret_ip, *curr_file);
+        char** tmp = realloc(call_stk->paths, call_stk->file_stk.top * sizeof(char*));
+        if (!tmp && call_stk->file_stk.top > 0) {
+            perror("realloc");
+            exit(EXIT_FAILURE);
+        }
+        call_stk->paths = tmp;
+
+        *ip = ret_ip;  // DO NOT increment
+        trace("[ip] set to %d\n", *ip);
     }
+    
 
     /* ==========================
        push
@@ -179,28 +193,43 @@ void interpret_line(
         trace("[ip] advanced to %d\n", *ip);
     }
 
+    /* ===========================
+                no-op
+    ==============================*/
+    cmd("noop") {
+        trace("[exec] no-op\n");
+        (*ip)++;
+        trace("[ip] advanced to %d\n", *ip);
+    }
+
     /* ==========================
        user-def'ed function
     ========================== */
     else {
         trace("[func caller] checking if \"%s\" exists...", func);
         int i; // global since we need it afterwards
+        bool found = false;
         for (i = 0; i < *function_count; i++){
             if (strcmp(functions[i]->name, func) == 0){
                 trace("yep.\n");
+                found = true;
                 break;
             }
-            else {
-                trace("nah.\n");
-                trace("[fatal] Error: unknown function %s.\n", func);
-                exit(EXIT_FAILURE);
-            }
+        }
+        if (!found) {
+            trace("nah.\n");
+            trace("[fatal] Error: unknown function %s.\n", func);
+            exit(EXIT_FAILURE);
         }
         // function exists
-        trace("[func caller] advancing ip to %d, which is the start addr of \"%s\".\n", functions[i]->start, functions[i]->name);
-        trace("[debug] not implemented yet, exiting\n");
-        exit(EXIT_SUCCESS);
+        trace("[func caller] advancing ip to %d, which is the start addr of \"%s\", defined in %s.\n", functions[i]->start, functions[i]->name, functions[i]->fname);
+        /*trace("[debug] not implemented yet, exiting\n");
+        exit(EXIT_SUCCESS);*/
+        push_stack(&call_stk->ip_stk, *ip + 1); // +1 so it advances and doesn't inf loop
         (*ip) = functions[i]->start;
+        push_stack(&call_stk->file_stk, call_stk->file_stk.top);
+        call_stk->paths = realloc(call_stk->paths, (call_stk->file_stk.top)*sizeof(char*));
+        call_stk->paths[call_stk->file_stk.top - 1] = strdup(functions[i]->fname);
     }
 
     trace("=== interpret_line END ===\n");
@@ -247,9 +276,9 @@ int main(void) {
     }
 
     // ---- test results ----
-    printf("Stack size: %d\n", stack.top);
-    if (stack.top > 0) {
-        printf("Top of stack = %d (expected 3)\n", stack.arr[stack.top - 1]);
+    printf("Stack size: %d\n", stack.top + 1);
+    if (stack.top >= 0) {
+        printf("Top of stack = %d (expected 3)\n", get_stack(&stack));
     }
 
     // ---- cleanup ----
