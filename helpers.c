@@ -236,3 +236,29 @@ int* slice_int_array(const int* arr, int arr_len, int start, int end, int* out_l
 
     return result;
 }
+
+// INTERPRETER.C
+char** split_lines(const char* src, int* out_count) {
+    char* buf = strdup(src);
+    if (!buf) exit(EXIT_FAILURE);
+
+    int cap = 8;
+    int count = 0;
+    char** lines = malloc(cap * sizeof(char*));
+    if (!lines) exit(EXIT_FAILURE);
+
+    char* tok = strtok(buf, "\n");
+    while (tok) {
+        if (count == cap) {
+            cap *= 2;
+            lines = realloc(lines, cap * sizeof(char*));
+            if (!lines) exit(EXIT_FAILURE);
+        }
+        lines[count++] = strdup(tok);
+        tok = strtok(NULL, "\n");
+    }
+
+    free(buf);
+    *out_count = count;
+    return lines;
+}

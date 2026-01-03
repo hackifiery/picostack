@@ -5,6 +5,7 @@
 
 #include "parser.h"
 #include "stack.h"
+#include "helpers.h"
 
 #define cmd(x) else if (strcmp(func, x) == 0)
 #define loop_params(i) for (int i = 0; i < params_len; i++)
@@ -235,63 +236,100 @@ void interpret_line(
     trace("=== interpret_line END ===\n");
 }
 
+void run_string_code(
+    const char* source,
+    const char* virtual_fname,
+    Function** functions,
+    int* function_count,
+    struct Stack* stack,
+    const char** include_paths
+) {
+    trace("\n=== run_string_code BEGIN (%s) ===\n", virtual_fname);
 
+    int line_count = 0;
+    char** lines = split_lines(source, &line_count);
+
+    // Lex + parse
+    lexTok** tokens = malloc(line_count * sizeof(lexTok*));
+    int* tok_sizes = malloc(line_count * sizeof(int));
+    Call* calls = malloc(line_count * sizeof(Call));
+
+    if (!tokens || !tok_sizes || !calls) exit(EXIT_FAILURE);
+
+    for (int i = 0; i < line_count; i++) {
+        trace("[runner] lexing line %d: %s\n", i + 1, lines[i]);
+        tokens[i] = lex_line(lines[i], (int)strlen(lines[i]) + 1, &tok_sizes[i]);
+        calls[i] = parse_line(tokens[i], tok_sizes[i]);
+    }
+
+    // Runtime state
+    int ip = 0;
+    bool in_function = false;
+    Function* curr_function = NULL;
+    char* curr_file = strdup(virtual_fname);
+    callStack cs = init_callStack();
+
+    // Execute
+    while (ip < line_count) {
+        trace("\n[runner] executing ip=%d (%s)\n", ip, curr_file);
+        interpret_line(
+            calls[ip],
+            line_count,
+            &ip,
+            functions,
+            &in_function,
+            function_count,
+            &curr_function,
+            stack,
+            include_paths,
+            &curr_file,
+            &cs
+        );
+    }
+
+    // Cleanup
+    for (int i = 0; i < line_count; i++) {
+        free_call(&calls[i]);
+        for (int j = 0; j < tok_sizes[i]; j++) {
+            free(tokens[i][j].val);
+        }
+        free(tokens[i]);
+        free(lines[i]);
+    }
+
+    free(tokens);
+    free(tok_sizes);
+    free(calls);
+    free(lines);
+    free(curr_file);
+
+    trace("=== run_string_code END ===\n");
+}
 
 int main(void) {
-    // ---- setup ----
     struct Stack stack;
     init_stack(&stack);
 
     Function* functions = NULL;
     int function_count = 0;
-    bool in_function = false;
-    Function* curr_function = NULL;
-
-    int ip = 0; // instruction pointer
-
-    // Lex tokens for test program: define f, push 3, endfunc, call f
-    int l1, l2, l3, l4;
-    lexTok* lines[4] = {
-        lex_line("startfunc \"f\";", 15, &l1),
-        lex_line("push 3;", 8, &l2),
-        lex_line("endfunc;", 9, &l3),
-        lex_line("f;", 3, &l4)
-    };
-
-    Call calls[4];
-    calls[0] = parse_line(lines[0], l1);
-    calls[1] = parse_line(lines[1], l2);
-    calls[2] = parse_line(lines[2], l3);
-    calls[3] = parse_line(lines[3], l4);
 
     const char* include_paths[] = { "./include/" };
-    callStack cs = init_callStack();
-    char* cf = "main.pcs";
 
-    // ---- execute ----
-    for (ip = 0; ip < 4;) {
-        trace("\n[runner] running line %d.\n", ip+1);
-        interpret_line(calls[ip], 0, &ip, &functions, &in_function, &function_count, &curr_function, &stack, include_paths, &cf, &cs);
-        
-    }
+    const char* code =
+        "startfunc \"f\";\n"
+        "push 3;\n"
+        "endfunc;\n"
+        "f;\n";
 
-    // ---- test results ----
-    printf("Stack size: %d\n", stack.top + 1);
-    if (stack.top >= 0) {
-        printf("Top of stack = %d (expected 3)\n", get_stack(&stack));
-    }
+    run_string_code(
+        code,
+        "<string>",
+        &functions,
+        &function_count,
+        &stack,
+        include_paths
+    );
 
-    // ---- cleanup ----
-    for (int i = 0; i < 4; i++) {
-        free_call(&calls[i]);
-        free(lines[i]);
-    }
-
-    for (int i = 0; i < function_count; i++) {
-        free(functions[i].name);
-    }
-    free(functions);
-    free(stack.arr);
-
+    printf("Stack top = %d\n", get_stack(&stack));
     return 0;
 }
