@@ -6,31 +6,16 @@
 #include "parser.h"
 #include "stack.h"
 #include "helpers.h"
+#include "interpreter.h"
 
 #define cmd(x) else if (strcmp(func, x) == 0)
 #define loop_params(i) for (int i = 0; i < params_len; i++)
 #define ic (*ip)++
+
+
 #define trace(...) fprintf(stderr, __VA_ARGS__)
 
-
-typedef struct {
-    struct Stack file_stk; // all numbers pointing to indexes in paths (since our struct Stack doesn't support strings & im lazy to reimplement it)
-    char** paths;
-}callStack;
-
-callStack init_callStack(void) {
-    callStack cs;
-    init_stack(&cs.file_stk);
-    cs.paths = NULL;
-    return cs;
-}
-
-typedef enum {
-    NORMAL,
-    INCLUDE_CALL,
-    FUNCTION_CALL
-} interpStatus;
-
+// so many parameters...
 interpStatus interpret_line(
     Call code,
     int* ip, // note: manipulated by the runner, not this
@@ -45,24 +30,7 @@ interpStatus interpret_line(
 ) {
     trace("\n=== interpret_line BEGIN ===\n");
     #define ret_trace(x) trace("=== interpret_line END ===\n"); return x
-    if (call_stk->file_stk.arr == NULL) {
-        trace("[init] first run, initializing call stack\n");
-        trace("[init] file=%s ip=%d\n", *curr_file, *ip);
 
-        // push a new file index into the file stack
-        push_stack(&call_stk->file_stk, call_stk->file_stk.top + 1);
-
-        // ensure paths array is large enough
-        int path_idx = call_stk->file_stk.top; // top after push
-        call_stk->paths = realloc(call_stk->paths, (path_idx + 1) * sizeof(char*));
-        if (!call_stk->paths) {
-            fprintf(stderr, "Memory allocation failed for paths\n");
-            exit(EXIT_FAILURE);
-        }
-
-        // store a copy of the file name
-        call_stk->paths[path_idx] = strdup(*curr_file);
-    }
     trace("[ip] current ip = %d\n", *ip);
     trace("[call] func='%s'\n", code.func.name);
     trace("[call] params_len=%d\n", code.params_len);
@@ -154,7 +122,7 @@ interpStatus interpret_line(
         int file_idx = pop_stack(&call_stk->file_stk);
         *curr_file = call_stk->paths[file_idx];
         trace("[func caller] returning file=%s\n", *curr_file);
-        char** tmp = realloc(call_stk->paths, call_stk->file_stk.top * sizeof(char*));
+        char** tmp = realloc(call_stk->paths, (call_stk->file_stk.top + 1) * sizeof(char*));
         if (!tmp && call_stk->file_stk.top > 0) {
             perror("realloc");
             exit(EXIT_FAILURE);
@@ -241,6 +209,7 @@ interpStatus interpret_line(
     trace("=== interpret_line END ===\n");
 }
 
+// not again...
 void run_str(
     char** code,
     struct Stack* stack,
@@ -336,6 +305,7 @@ void run_str(
 
     // pop file
     free(cs->paths[file_idx]);
+    cs->paths[file_idx] = NULL;
     discard_stack(&cs->file_stk);
 }
 
@@ -386,11 +356,8 @@ int main(void) {
     }
     printf("\n");
 
-    // Clean up
-    for (int i = 0; i <= cs.file_stk.top; i++) {
-        free(cs.paths[i]);
-    }
     free(cs.paths);
     free(stack.arr);
     free(functions);
+    return 0;
 }
