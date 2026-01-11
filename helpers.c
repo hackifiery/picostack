@@ -249,6 +249,12 @@ char** split_lines(const char* src, int* out_count) {
 
     char* tok = strtok(buf, "\n");
     while (tok) {
+        // strip trailing \r if present
+        size_t len = strlen(tok);
+        if (len > 0 && tok[len - 1] == '\r') {
+            tok[len - 1] = '\0';
+        }
+
         if (count == cap) {
             cap *= 2;
             lines = realloc(lines, cap * sizeof(char*));
@@ -261,4 +267,26 @@ char** split_lines(const char* src, int* out_count) {
     free(buf);
     *out_count = count;
     return lines;
+}
+
+
+char* read_file(const char* path) {
+    FILE* f = fopen(path, "rb");
+    if (!f) {
+        perror(path);
+        exit(EXIT_FAILURE);
+    }
+
+    fseek(f, 0, SEEK_END);
+    long size = ftell(f);
+    rewind(f);
+
+    char* buf = malloc(size + 1);
+    if (!buf) exit(EXIT_FAILURE);
+
+    fread(buf, 1, size, f);
+    buf[size] = 0;
+
+    fclose(f);
+    return buf;
 }

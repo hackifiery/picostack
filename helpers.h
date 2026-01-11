@@ -12,3 +12,4 @@ int* string_to_params(char* str, int* out_len);
 void insert_int_array(int** arr, int* arr_len, const int* insert, const int insert_len, int index);
 int* slice_int_array(const int* arr, int arr_len, int start, int end, int* out_len);
 char** split_lines(const char* src, int* out_count);
+char* read_file(const char* path);
