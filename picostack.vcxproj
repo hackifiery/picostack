@@ -123,6 +123,7 @@
     <ClCompile Include="interpreter.c" />
     <ClCompile Include="lexer.c" />
     <ClCompile Include="parser.c" />
+    <ClCompile Include="runner.c" />
     <ClCompile Include="stack.c" />
   </ItemGroup>
   <ItemGroup>
@@ -135,6 +136,7 @@
   <ItemGroup>
     <None Include=".gitignore" />
     <None Include="README.md" />
+    <None Include="test.pcs" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

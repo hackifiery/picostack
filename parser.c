@@ -21,9 +21,9 @@ typedef struct {
     char* params_char; // used for includes and specs
 } Call;
 */
-#define trace(...) fprintf(stderr, __VA_ARGS__)
+#define trace(...) if (verbose) fprintf(stderr, __VA_ARGS__)
 
-Call parse_line(const lexTok* code, const int in_size) {
+Call parse_line(const lexTok* code, const int in_size, bool verbose) {
     trace("\n=== parse_line BEGIN ===\n");
 
     Call out;
@@ -235,7 +235,7 @@ void print_call(const Call* call) {
     }
 }
 
-// Test the parser
+// Test
 static int test(void) {
     printf("=== Parser Tests ===\n\n");
 
@@ -244,7 +244,7 @@ static int test(void) {
         int sz = 0;
         char input[] = "@stdlib;";
         lexTok* tokens = lex_line(input, (int)strlen(input), &sz);
-        Call call = parse_line(tokens, sz);
+        Call call = parse_line(tokens, sz, false);
 
         printf("Test 1 - Include:\n");
         print_call(&call);
@@ -260,7 +260,7 @@ static int test(void) {
         int sz = 0;
         char input[] = "push(42, 100);";
         lexTok* tokens = lex_line(input, (int)strlen(input), &sz);
-        Call call = parse_line(tokens, sz);
+        Call call = parse_line(tokens, sz, false);
 
         printf("Test 2 - Function with numbers:\n");
         print_call(&call);
@@ -276,7 +276,7 @@ static int test(void) {
         int sz = 0;
         char input[] = "discard();";
         lexTok* tokens = lex_line(input, (int)strlen(input), &sz);
-        Call call = parse_line(tokens, sz);
+        Call call = parse_line(tokens, sz, false);
 
         printf("Test 3 - Keyword:\n");
         print_call(&call);
@@ -292,7 +292,7 @@ static int test(void) {
         int sz = 0;
         char input[] = "push(\"Hello\n\");";
         lexTok* tokens = lex_line(input, (int)strlen(input), &sz);
-        Call call = parse_line(tokens, sz);
+        Call call = parse_line(tokens, sz, false);
 
         printf("Test 4 - Function with string:\n");
         print_call(&call);

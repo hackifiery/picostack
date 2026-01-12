@@ -8,12 +8,7 @@ typedef struct {
     char** paths;
 }callStack;
 
-callStack init_callStack(void) {
-    callStack cs;
-    init_stack(&cs.file_stk);
-    cs.paths = NULL;
-    return cs;
-}
+callStack init_callStack(void);
 
 typedef enum {
     NORMAL,
@@ -31,7 +26,8 @@ interpStatus interpret_line(
     struct Stack* stack,
     const char** include_paths,
     char** curr_file,
-    callStack* call_stk
+    callStack* call_stk,
+    bool verbose
 );
 
 void run_str(

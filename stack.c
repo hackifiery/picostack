@@ -115,30 +115,6 @@ void sub_stack(struct Stack *stack) {
     push_stack(stack, a - b);
 }
 
-// jump to address (top val) if test val is 0 (2nd to top val)
-void execute_jump(struct Stack *stack, size_t *pc, const char *program_start) {
-    if (stack->top < 1) {
-        fprintf(stderr, "Error: Stack needs 2 items (Address and Test Value) for JUMP.\n");
-        return;
-    }
-
-    int target_address = pop_stack(stack);
-    int test_value = pop_stack(stack);
-
-    size_t program_length = strlen(program_start);
-
-    if (test_value == 0) {
-        if (target_address < 0 || target_address >= (int)program_length) {
-            fprintf(stderr, "Error: Invalid jump address (%d).\n", target_address);
-            *pc = program_length; // jump to end
-            return;
-        }
-        *pc = (size_t)target_address;
-    } else {
-        (*pc)++;
-    }
-}
-
 // output top val as char
 void out_stack(struct Stack *stack) {
     char output_char = (char)pop_stack(stack);
@@ -166,4 +142,37 @@ void in_int_stack(struct Stack *stack) {
     int val;
     scanf("%d", &val);
     push_stack(stack, val);
+}
+
+// rotate right the top n items right in the stack (top -> nth item)
+void rot_right_stack(struct Stack* stack, int n) {
+    if (n <= 0 || stack->top < n - 1) {
+        return;
+    }
+
+    int boundary_idx = stack->top - n;
+    int target_idx = boundary_idx + 1;
+    int moved_element = stack->arr[stack->top];
+
+    for (int i = stack->top - 1; i >= target_idx; i--) {
+        stack->arr[i + 1] = stack->arr[i];
+    }
+
+    stack->arr[target_idx] = moved_element;
+}
+
+// rotate left the top n items left in the stack (nth item -> top)
+void rot_left_stack(struct Stack* stack, int n) {
+    if (n <= 1 || stack->top < n - 1) {
+        return;  // nothing to rotate
+    }
+
+    int start = stack->top - n + 1; // beginning of slice
+    int first = stack->arr[start]; // first element to move left
+
+    for (int i = start; i < stack->top; i++) {
+        stack->arr[i] = stack->arr[i + 1];
+    }
+
+    stack->arr[stack->top] = first;
 }

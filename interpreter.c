@@ -9,11 +9,18 @@
 #include "interpreter.h"
 
 #define cmd(x) else if (strcmp(func, x) == 0)
+
 #define loop_params(i) for (int i = 0; i < params_len; i++)
 #define ic (*ip)++
 
+#define trace(...) if(verbose) fprintf(stderr, __VA_ARGS__)
 
-#define trace(...) fprintf(stderr, __VA_ARGS__)
+callStack init_callStack(void) {
+    callStack cs;
+    init_stack(&cs.file_stk);
+    cs.paths = NULL;
+    return cs;
+}
 
 // so many parameters...
 interpStatus interpret_line(
@@ -26,7 +33,8 @@ interpStatus interpret_line(
     struct Stack* stack,
     const char** include_paths,
     char** curr_file,
-    callStack* call_stk
+    callStack* call_stk,
+    bool verbose
 ) {
     trace("\n=== interpret_line BEGIN ===\n");
     #define ret_trace(x) trace("=== interpret_line END ===\n"); return x
@@ -55,6 +63,10 @@ interpStatus interpret_line(
     char* params_char = code.params_char;
 
     if (false); // dummy for macros
+
+
+    /*========= INTERNALS =================*/
+
 
     /* ==========================
        startfunc
@@ -133,8 +145,8 @@ interpStatus interpret_line(
     }
 
     /* ==========================
-   include
-========================== */
+       include
+    ========================== */
     cmd("_inc") {
         char fullpath[512];
         snprintf(fullpath, sizeof(fullpath), "%s%s",
@@ -152,16 +164,27 @@ interpStatus interpret_line(
         ret_trace(INCLUDE_CALL);
     }
 
+    /* ======== END INTERNALS ======= */
+
+
+
+    /* ====== KEYWORDS =============*/
+
+
+    #define ei else if
+    #define ccmd(x) strcmp(func, x) == 0
+    #define newtop trace("[stack] new top=%d\n", stack->top);
+
     /* ==========================
        push
     ========================== */
-    cmd("push") {
+    ei(ccmd("ps") || ccmd("push")) {
         trace("[exec] push\n");
 
         loop_params(i) {
             trace("[stack] push %d\n", params[i]);
             push_stack(stack, params[i]);
-            trace("[stack] new top=%d\n", stack->top);
+            newtop;
         }
 
         ret_trace(NORMAL);
@@ -170,12 +193,62 @@ interpStatus interpret_line(
     /* ==========================
        discard
     ========================== */
-    cmd("discard") {
+    ei(ccmd("disc") || ccmd("discard")) {
         trace("[exec] discard\n");
 
         discard_stack(stack);
-        trace("[stack] new top=%d\n", stack->top);
+        newtop;
 
+        ret_trace(NORMAL);
+    }
+
+    /* =========================
+       duplicate
+    ========================== */
+
+    ei(ccmd("dup") || ccmd("duplicate")) {
+        trace("[exec] duplicate\n");
+        dup_stack(stack);
+        newtop;
+        ret_trace(NORMAL);
+    }
+
+    /* ========================
+       rotate right
+    ======================== */
+    ei(ccmd("rotr") || ccmd("rr")) {
+        trace("[exec] rotate r %d\n", params[0]);
+        rot_right_stack(stack, params[0]);
+        ret_trace(NORMAL);
+    }
+
+    /* =======================
+        rotate left
+    ========================= */
+
+    ei(ccmd("rotl") || ccmd("rl")) {
+        trace("[exec] rotate l %d\n", params[0]);
+        rot_left_stack(stack, params[0]);
+        ret_trace(NORMAL);
+    }
+
+    /* ========================
+        reverse
+    ========================== */
+
+    ei(ccmd("reverse") || ccmd("rev")) {
+        trace("[exec] reverse");
+        reverse_stack(stack);
+        ret_trace(NORMAL);
+    }
+
+    /* =========================
+        print char
+    ============================ */
+
+    cmd("putc") {
+        trace("[exec] putc");
+        out_stack(stack);
         ret_trace(NORMAL);
     }
 
@@ -185,9 +258,14 @@ interpStatus interpret_line(
     cmd("noop") {
         trace("[exec] no-op\n");
 
-
         ret_trace(NORMAL);
     }
+
+    #undef ccmd
+    #undef ei
+    #undef newtop
+    /* ============ END KEYWORDS ==================*/
+
 
     /* ==========================
        user-def'ed function
@@ -237,7 +315,7 @@ void run_str(
         Call par;
 
         lex = lex_line(code[ip], strlen(code[ip]) + 1, &lex_size);
-        par = parse_line(lex, lex_size);
+        par = parse_line(lex, lex_size, false);
 
         interpStatus st = interpret_line(
             par,
@@ -249,7 +327,8 @@ void run_str(
             stack,
             include_paths,
             &cs->paths[file_idx],
-            cs
+            cs,
+            false
         );
 
         if (st == NORMAL) {
@@ -309,10 +388,16 @@ void run_str(
     discard_stack(&cs->file_stk);
 }
 
-int main(void) {
+static int test(void) {
     char* code[] = {
-        "@io.pcs;",
-        "f();"
+        "startfunc \"main\";",
+        "push 3, 4, 5;",
+        "push \"hello\";",
+        "rotr 2;",
+        "rotl 2;",
+        "disc;",
+        "endfunc;",
+        "main;"
     };
     int prog_size = sizeof(code) / sizeof(code[0]);
 

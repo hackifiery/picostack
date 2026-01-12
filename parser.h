@@ -19,6 +19,6 @@ typedef struct {
     char* params_char;  // String parameter for includes/specs (must be freed)
 } Call;
 
-Call parse_line(const lexTok* code, const int in_size);
+Call parse_line(const lexTok* code, const int in_size, bool verbose);
 void free_call(Call* call);
 void print_call(const Call* call);
