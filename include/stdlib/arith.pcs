@@ -1,0 +1,6 @@
+startfunc "addim";
+ppop;
+protr 1;
+ppop;
+add;
+endfunc;

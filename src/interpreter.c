@@ -287,7 +287,7 @@ interpStatus interpret_line(
     ============================ */
 
     cmd("putc") {
-        trace("[exec] putc");
+        trace("[exec] putc\\n");
         out_stack(stack);
         ret_trace(NORMAL);
     }
@@ -297,15 +297,31 @@ interpStatus interpret_line(
     ============================ */
 
     cmd("jt") {
-        trace("[exec] jt");
+        trace("[exec] jt\n");
         if (params[1] == 1) *ip = params[0];
         ret_trace(JUMP);
     }
 
     cmd("jf") {
-        trace("[exec] jf");
+        trace("[exec] jf\n");
         if (params[1] != 1) *ip = params[0];
         ret_trace(JUMP);
+    }
+
+    /* =========================
+        arithmetic
+    ============================ */
+
+    cmd("add") {
+        trace("[exec] add\n");
+        add_stack(stack);
+        ret_trace(NORMAL);
+    }
+
+    cmd("sub") {
+        trace("[exec] subtract\n");
+        sub_stack(stack);
+        ret_trace(NORMAL);
     }
 
     /* ===========================
