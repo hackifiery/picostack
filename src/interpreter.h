@@ -25,6 +25,7 @@ interpStatus interpret_line(
     int* function_count,
     Function** curr_function,
     struct Stack* stack,
+    struct Stack* pstack,
     const char** include_paths,
     char** curr_file,
     callStack* call_stk,
@@ -34,6 +35,7 @@ interpStatus interpret_line(
 void run_str(
     char** code,
     struct Stack* stack,
+    struct Stack* pstk,
     const int in_size,
     const char* fn,
     Function** functions,

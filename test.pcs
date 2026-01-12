@@ -1,3 +1,11 @@
-ps 65;
-putc;
-jt 0 1;
+startfunc("f");
+psl();
+protr(^);
+ppop();
+putc();
+protl(2);
+ppop();
+putc();
+endfunc();
+
+f(65, 66);

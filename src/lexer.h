@@ -16,4 +16,4 @@ typedef struct {
     char* val;
 } lexTok;
 
-lexTok* lex_line(char* code_raw_, int size, int* toks_size_out, struct Stack *stack);
+lexTok* lex_line(char* code_raw_, int size, int* toks_size_out, struct Stack *stack, bool in_function);

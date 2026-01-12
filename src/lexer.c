@@ -9,7 +9,7 @@
 
 #define _CRT_SECURE_NO_WARNINGS
 
-lexTok* lex_line(char* code_raw_, int size, int* toks_size_out, struct Stack *stack) {
+lexTok* lex_line(char* code_raw_, int size, int* toks_size_out, struct Stack *stack, bool in_function) {
     if (size <= 0 || code_raw_[size - 2] != ';') {
         fprintf(stderr, "Lexer Error: Line must end with ';'\n");
         exit(EXIT_FAILURE);
@@ -30,8 +30,10 @@ lexTok* lex_line(char* code_raw_, int size, int* toks_size_out, struct Stack *st
     for (int i = 0; i < split_size; i++) {
         char* curr = code[i];
         if (!curr || *curr == '\0') continue;
-        if (*curr == '~') sprintf(curr, "%d", get_stack(stack));
-        else if (*curr == '^') sprintf(curr, "%d", pop_stack(stack));
+        if (!in_function){
+            if (*curr == '~') sprintf(curr, "%d", get_stack(stack));
+            else if (*curr == '^') sprintf(curr, "%d", pop_stack(stack));
+        }
 
         lexTok tok;
         tok.val = NULL;

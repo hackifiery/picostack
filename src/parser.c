@@ -164,6 +164,7 @@ Call parse_line(const lexTok* code, const int in_size, bool verbose) {
             break;
 
         case Func:
+            if (strcmp(tok.val, "^") == 0 || strcmp(tok.val, "^") == 0) continue; // preprocesser params
             error("nested call '%s' not supported\n", tok.val);
             exit(EXIT_FAILURE);
 

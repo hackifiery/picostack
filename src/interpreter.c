@@ -31,6 +31,7 @@ interpStatus interpret_line(
     int* function_count,
     Function** curr_function,
     struct Stack* stack,
+    struct Stack* pstack,
     const char** include_paths,
     char** curr_file,
     callStack* call_stk,
@@ -55,7 +56,7 @@ interpStatus interpret_line(
 
 
         trace("=== interpret_line END (skipped) ===\n");
-        ret_trace(NORMAL);
+        return NORMAL;
     }
 
     char* func = code.func.name;
@@ -105,8 +106,6 @@ interpStatus interpret_line(
 
         trace("[state] in_function = true\n");
 
-
-
         ret_trace(NORMAL);
     }
 
@@ -140,6 +139,8 @@ interpStatus interpret_line(
             exit(EXIT_FAILURE);
         }
         call_stk->paths = tmp;
+
+        init_stack(pstack); // reset parameters
         
         ret_trace(NORMAL);
     }
@@ -199,6 +200,17 @@ interpStatus interpret_line(
         ret_trace(NORMAL);
     }
 
+    /* ========================
+        param pop
+    ========================== */
+
+    cmd("ppop") {
+        trace("[exec] param stack pop");
+        int val = pop_stack(pstack);
+        push_stack(stack, val);
+        ret_trace(NORMAL);
+    }
+
     /* ==========================
        discard
     ========================== */
@@ -231,6 +243,12 @@ interpStatus interpret_line(
         ret_trace(NORMAL);
     }
 
+    ei(ccmd("protr") || ccmd("prr")) {
+        trace("[exec] param rotate r %d\n", params[0]);
+        rot_right_stack(pstack, params[0]);
+        ret_trace(NORMAL);
+    }
+
     /* =======================
         rotate left
     ========================= */
@@ -241,13 +259,25 @@ interpStatus interpret_line(
         ret_trace(NORMAL);
     }
 
+    ei(ccmd("protl") || ccmd("prl")) {
+        trace("[exec] param rotate l %d\n", params[0]);
+        rot_left_stack(pstack, params[0]);
+        ret_trace(NORMAL);
+    }
+
     /* ========================
-        reverse
+        get stack size
     ========================== */
 
-    ei(ccmd("reverse") || ccmd("rev")) {
-        trace("[exec] reverse");
-        reverse_stack(stack);
+    ei(ccmd("sl") || ccmd("stklen")) {
+        trace("[exec] stack len\n");
+        push_stack(stack, stack->top+1);
+        ret_trace(NORMAL);
+    }
+
+    ei(ccmd("psl") || ccmd("pstklen")) {
+        trace("[exec] param stack len\n");
+        push_stack(stack, pstack->top+1);
         ret_trace(NORMAL);
     }
 
@@ -306,6 +336,7 @@ interpStatus interpret_line(
             exit(1);
         }
         *curr_function = &(*functions)[i];
+        loop_params(i) push_stack(pstack, params[i]);
         ret_trace(FUNCTION_CALL);
     }
 
@@ -316,6 +347,7 @@ interpStatus interpret_line(
 void run_str(
     char** code,
     struct Stack* stack,
+    struct Stack* pstk,
     const int in_size,
     const char* fn,
     Function** functions,
@@ -339,7 +371,7 @@ void run_str(
         int lex_size;
         Call par;
 
-        lex = lex_line(code[ip], strlen(code[ip]) + 1, &lex_size, stack);
+        lex = lex_line(code[ip], strlen(code[ip]) + 1, &lex_size, stack, *in_function);
         par = parse_line(lex, lex_size, false);
 
         interpStatus st = interpret_line(
@@ -350,10 +382,12 @@ void run_str(
             function_count,
             curr_function,
             stack,
+            pstk,
             include_paths,
             &cs->paths[file_idx],
             cs,
             false
+            //true
         );
 
         if (st == NORMAL) {
@@ -370,6 +404,7 @@ void run_str(
             run_str(
                 lines,
                 stack,
+                pstk,
                 n,
                 fname,
                 functions,
@@ -393,6 +428,7 @@ void run_str(
             run_str(
                 lines + f->start,
                 stack,
+                pstk,
                 f->end - f->start,
                 f->fname,
                 functions,

@@ -27,9 +27,13 @@ void run_file(
     bool in_function = false;
     int function_count = 0;
 
+    struct Stack ps;
+    init_stack(&ps);
+
     run_str(
         lines,
         &stack,
+        &ps,
         line_count,
         filename,
         &functions,
