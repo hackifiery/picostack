@@ -296,7 +296,7 @@ interpStatus interpret_line(
     ============================ */
 
     cmd("putc") {
-        trace("[exec] putc\\n");
+        trace("[exec] putc\n");
         out_stack(stack);
         ret_trace(NORMAL);
     }
@@ -396,8 +396,12 @@ void run_str(
         lexTok* lex;
         int lex_size;
         Call par;
-        bool verbose = true;
-        trace("\n[runner] running %s.\n", code[ip]);
+        if (code[ip] == NULL) {
+            ip++;
+            continue;
+        }
+        /*bool verbose = true;
+        trace("\n[runner] running %s.\n", code[ip]);*/
         lex = lex_line(code[ip], strlen(code[ip]) + 1, &lex_size, stack, *in_function);
         par = parse_line(lex, lex_size, false);
 
@@ -413,8 +417,8 @@ void run_str(
             include_paths,
             &cs->paths[file_idx],
             cs,
-            //false
-            true
+            false
+            //true
         );
 
         if (st == NORMAL) {
