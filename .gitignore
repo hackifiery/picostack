@@ -33,3 +33,4 @@
 **/*.o
 **/.dirstamp
 **/Makefile.in
+**/*.awk
