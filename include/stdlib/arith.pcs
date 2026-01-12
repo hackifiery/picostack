@@ -1,6 +1,14 @@
 startfunc "addim";
-ppop;
-protr 1;
-ppop;
+pget;
+protr 2;
+pget;
 add;
+endfunc;
+
+startfunc "subim";
+protr 2;
+pget;
+protr 2;
+pget;
+sub;
 endfunc;

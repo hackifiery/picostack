@@ -1,3 +1,5 @@
 @stdlib/arith.pcs;
 addim(64, 1);
 putc;
+subim(66, 1);
+putc;

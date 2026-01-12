@@ -211,12 +211,12 @@ interpStatus interpret_line(
     }
 
     /* ========================
-        param pop
+        param get
     ========================== */
 
-    cmd("ppop") {
-        trace("[exec] param stack pop");
-        int val = pop_stack(pstack);
+    cmd("pget") {
+        trace("[exec] param stack get");
+        int val = get_stack(pstack);
         push_stack(stack, val);
         ret_trace(NORMAL);
     }
@@ -392,7 +392,7 @@ void run_str(
     cs->paths = realloc(cs->paths, (file_idx + 1) * sizeof(char*));
     cs->paths[file_idx] = strdup(fn);
 
-    while (ip <= in_size) {
+    while (ip < in_size) {
         lexTok* lex;
         int lex_size;
         Call par;
