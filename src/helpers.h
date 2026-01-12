@@ -1,5 +1,7 @@
 #pragma once
 #include <stdbool.h>
+#define trace(...) if (verbose) fprintf(stderr, __VA_ARGS__)
+#define error(...) printf(__VA_ARGS__); exit(EXIT_FAILURE)
 
 bool isInt(const char* str);
 char* safe_realloc(char* original_ptr, size_t new_size);
@@ -13,3 +15,4 @@ void insert_int_array(int** arr, int* arr_len, const int* insert, const int inse
 int* slice_int_array(const int* arr, int arr_len, int start, int end, int* out_len);
 char** split_lines(const char* src, int* out_count);
 char* read_file(const char* path);
+bool file_exists(const char *filename);

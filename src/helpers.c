@@ -43,14 +43,6 @@ char* safe_realloc(char* original_ptr, size_t new_size) {
     return temp_ptr;
 }
 
-bool isKeyw(char* c) {
-    for (int i = 0; i < 4; i++) { // Using 4 for the 4 keywords defined
-        if (strcmp(c, Funcs[i]) == 0) return true;
-    }
-    return false;
-}
-
-
 void strip_char(char* str, const char stripval) {
     if (str == NULL) return;
 
@@ -289,4 +281,12 @@ char* read_file(const char* path) {
 
     fclose(f);
     return buf;
+}
+
+bool file_exists(const char *filename) {
+    FILE *file;
+    if ((file = fopen(filename, "r")) != NULL) {
+        fclose(file);
+        return true;
+    } else return false;
 }

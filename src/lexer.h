@@ -1,7 +1,8 @@
 #pragma once
+#include "stack.h"
 
 typedef enum {
-    Keyw,
+    Keyw, // unused, historic
     String,
     Func,
     Include,
@@ -15,6 +16,4 @@ typedef struct {
     char* val;
 } lexTok;
 
-extern char Funcs[10][10];
-
-lexTok* lex_line(char* code_raw_, int size, int* toks_size_out);
+lexTok* lex_line(char* code_raw_, int size, int* toks_size_out, struct Stack *stack);

@@ -21,7 +21,6 @@ typedef struct {
     char* params_char; // used for includes and specs
 } Call;
 */
-#define trace(...) if (verbose) fprintf(stderr, __VA_ARGS__)
 
 Call parse_line(const lexTok* code, const int in_size, bool verbose) {
     trace("\n=== parse_line BEGIN ===\n");
@@ -34,11 +33,11 @@ Call parse_line(const lexTok* code, const int in_size, bool verbose) {
        Input validation
     -------------------------- */
     if (!code) {
-        trace("[error] code == NULL\n");
+        error("code == NULL\n");
         exit(EXIT_FAILURE);
     }
     if (in_size == 0) {
-        trace("[error] in_size == 0\n");
+        error("in_size == 0\n");
         exit(EXIT_FAILURE);
     }
 
@@ -47,22 +46,18 @@ Call parse_line(const lexTok* code, const int in_size, bool verbose) {
           code[0].type, code[0].val);
 
     lexTokType head = code[0].type;
-    assert(head == Func || head == Keyw || head == Spec || head == Include);
+    assert(head == Func || head == Spec || head == Include);
 
     /* --------------------------
        Determine call kind
     -------------------------- */
     bool is_startfunc = false;
 
-    if (head == Func || head == Keyw) {
+    if (head == Func ) {
         trace("[call] function/keyword detected\n");
 
         out.func.name = strdup(code[0].val);
         trace("[call] function name = '%s'\n", out.func.name);
-
-        out.func.isExtern = (head == Keyw);
-        trace("[call] isExtern = %s\n",
-              out.func.isExtern ? "true" : "false");
 
         is_startfunc = (strcmp(code[0].val, "startfunc") == 0);
         trace("[call] is_startfunc = %s\n",
@@ -135,7 +130,7 @@ Call parse_line(const lexTok* code, const int in_size, bool verbose) {
                 trace("[string] startfunc name detected\n");
 
                 if (out.params_char != NULL) {
-                    trace("[error] startfunc already has a name\n");
+                    error("startfunc already has a name\n");
                     exit(EXIT_FAILURE);
                 }
 
@@ -169,8 +164,7 @@ Call parse_line(const lexTok* code, const int in_size, bool verbose) {
             break;
 
         case Func:
-        case Keyw:
-            trace("[error] nested call '%s' not supported\n", tok.val);
+            error("nested call '%s' not supported\n", tok.val);
             exit(EXIT_FAILURE);
 
         default:
@@ -195,118 +189,4 @@ Call parse_line(const lexTok* code, const int in_size, bool verbose) {
 
     trace("=== parse_line END ===\n");
     return out;
-}
-
-void free_call(Call* call) {
-    if (call == NULL) return;
-
-    if (call->func.name) {
-        free(call->func.name);
-        call->func.name = NULL;
-    }
-    if (call->params) {
-        free(call->params);
-        call->params = NULL;
-    }
-    if (call->params_char) {
-        free(call->params_char);
-        call->params_char = NULL;
-    }
-}
-
-void print_call(const Call* call) {
-    if (call == NULL) return;
-
-    printf("Function: %s\n", call->func.name);
-    printf("  isExtern: %s\n", call->func.isExtern ? "true" : "false");
-    printf("  paramCount: %d\n", call->func.paramCount);
-
-    if (call->params_char) {
-        printf("  params_char: %s\n", call->params_char);
-    }
-
-    if (call->params && call->params_len > 0) {
-        printf("  params: [");
-        for (int i = 0; i < call->params_len; i++) {
-            printf("%d", call->params[i]);
-            if (i < call->params_len - 1) printf(", ");
-        }
-        printf("]\n");
-    }
-}
-
-// Test
-static int test(void) {
-    printf("=== Parser Tests ===\n\n");
-
-    // Test 1: Include
-    {
-        int sz = 0;
-        char input[] = "@stdlib;";
-        lexTok* tokens = lex_line(input, (int)strlen(input), &sz);
-        Call call = parse_line(tokens, sz, false);
-
-        printf("Test 1 - Include:\n");
-        print_call(&call);
-        printf("\n");
-
-        free_call(&call);
-        for (int i = 0; i < sz; i++) free(tokens[i].val);
-        free(tokens);
-    }
-
-    // Test 2: Function with numbers
-    {
-        int sz = 0;
-        char input[] = "push(42, 100);";
-        lexTok* tokens = lex_line(input, (int)strlen(input), &sz);
-        Call call = parse_line(tokens, sz, false);
-
-        printf("Test 2 - Function with numbers:\n");
-        print_call(&call);
-        printf("\n");
-
-        free_call(&call);
-        for (int i = 0; i < sz; i++) free(tokens[i].val);
-        free(tokens);
-    }
-
-    // Test 3: Keyword (builtin function)
-    {
-        int sz = 0;
-        char input[] = "discard();";
-        lexTok* tokens = lex_line(input, (int)strlen(input), &sz);
-        Call call = parse_line(tokens, sz, false);
-
-        printf("Test 3 - Keyword:\n");
-        print_call(&call);
-        printf("\n");
-
-        free_call(&call);
-        for (int i = 0; i < sz; i++) free(tokens[i].val);
-        free(tokens);
-    }
-
-    // Test 4: Function with string
-    {
-        int sz = 0;
-        char input[] = "push(\"Hello\n\");";
-        lexTok* tokens = lex_line(input, (int)strlen(input), &sz);
-        Call call = parse_line(tokens, sz, false);
-
-        printf("Test 4 - Function with string:\n");
-        print_call(&call);
-        printf("  params as chars: ");
-        for (int i = 0; i < call.params_len; i++) {
-            if (call.params[i] == 0) printf("\\0");
-            else printf("%c", (char)call.params[i]);
-        }
-        printf("\n\n");
-
-        free_call(&call);
-        for (int i = 0; i < sz; i++) free(tokens[i].val);
-        free(tokens);
-    }
-
-    return 0;
 }

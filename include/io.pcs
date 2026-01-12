@@ -1,3 +1,0 @@
-startfunc("f");
-push(3);
-endfunc();

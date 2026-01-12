@@ -1,9 +1,4 @@
-startfunc "main";
-push 1 2 3;
-push "hello";
-rotr 2;
-rotl 2;
-disc;
-dup;
-endfunc;
-main;
+push 65;
+push ~;
+putc;
+putc;

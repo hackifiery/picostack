@@ -13,8 +13,6 @@
 #define loop_params(i) for (int i = 0; i < params_len; i++)
 #define ic (*ip)++
 
-#define trace(...) if(verbose) fprintf(stderr, __VA_ARGS__)
-
 callStack init_callStack(void) {
     callStack cs;
     init_stack(&cs.file_stk);
@@ -82,7 +80,7 @@ interpStatus interpret_line(
                 (*function_count) * sizeof(Function));
 
         if (!tmp) {
-            trace("[fatal] realloc failed\n");
+            error("realloc failed\n");
             exit(EXIT_FAILURE);
         }
 
@@ -91,7 +89,6 @@ interpStatus interpret_line(
         Function* f = &(*functions)[(*function_count) - 1];
 
         f->name = strdup(params_char);
-        f->isExtern = false;
         f->fname = strdup(*curr_file);
         f->paramCount = -1;
         f->start = *ip + 1;
@@ -148,10 +145,19 @@ interpStatus interpret_line(
        include
     ========================== */
     cmd("_inc") {
-        char fullpath[512];
-        snprintf(fullpath, sizeof(fullpath), "%s%s",
-            include_paths[0], params_char);
-
+        char *fullpath = NULL;
+        for (int i = 0; include_paths[i] != NULL; i++) {
+            char tmp[512];
+            snprintf(tmp, sizeof(tmp), "%s%s",
+                include_paths[0], params_char);
+            if (file_exists(tmp)) {
+                fullpath = strdup(tmp);
+                break;
+            }
+        }
+        if (fullpath == NULL) {
+            error("%s not found.", params_char);
+        }
         // push file
         push_stack(&call_stk->file_stk, call_stk->file_stk.top + 1);
         int idx = call_stk->file_stk.top;
@@ -252,6 +258,10 @@ interpStatus interpret_line(
         ret_trace(NORMAL);
     }
 
+    /* =========================
+        jumps
+    ============================ */
+
     /* ===========================
                 no-op
     ==============================*/
@@ -314,7 +324,7 @@ void run_str(
         int lex_size;
         Call par;
 
-        lex = lex_line(code[ip], strlen(code[ip]) + 1, &lex_size);
+        lex = lex_line(code[ip], strlen(code[ip]) + 1, &lex_size, stack);
         par = parse_line(lex, lex_size, false);
 
         interpStatus st = interpret_line(
@@ -386,63 +396,4 @@ void run_str(
     free(cs->paths[file_idx]);
     cs->paths[file_idx] = NULL;
     discard_stack(&cs->file_stk);
-}
-
-static int test(void) {
-    char* code[] = {
-        "startfunc \"main\";",
-        "push 3, 4, 5;",
-        "push \"hello\";",
-        "rotr 2;",
-        "rotl 2;",
-        "disc;",
-        "endfunc;",
-        "main;"
-    };
-    int prog_size = sizeof(code) / sizeof(code[0]);
-
-    struct Stack stack;
-    init_stack(&stack);
-
-    callStack cs = init_callStack();
-
-    Function* functions = NULL;
-    Function* curr_function = NULL;
-    bool in_function = false;
-    int function_count = 0;
-
-    const char* include_paths[] = { "./include/" };
-
-    run_str(
-        code,
-        &stack,
-        prog_size,
-        "testf.pcs",
-        &functions,
-        &in_function,
-        &function_count,
-        &curr_function,
-        include_paths,
-        &cs
-    );
-
-    printf("\nAfter program run:\n");
-    printf("Stack top = %d\n", stack.top);
-    printf("Stack contents (top -> bottom): ");
-    for (int i = stack.top; i >= 0; i--) {
-        printf("%d ", stack.arr[i]);
-    }
-    printf("\n");
-
-    printf("Call stack top = %d\n", cs.file_stk.top);
-    printf("Call stack files (top -> bottom): ");
-    for (int i = cs.file_stk.top; i >= 0; i--) {
-        printf("%s ", cs.paths[i]);
-    }
-    printf("\n");
-
-    free(cs.paths);
-    free(stack.arr);
-    free(functions);
-    return 0;
 }

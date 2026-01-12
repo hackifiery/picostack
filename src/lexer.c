@@ -5,17 +5,11 @@
 
 #include "lexer.h"
 #include "helpers.h"
+#include "stack.h"
 
 #define _CRT_SECURE_NO_WARNINGS
 
-char Funcs[][10] = {
-    "push",
-    "discard",
-    "startfunc",
-    "endfunc"
-};
-
-lexTok* lex_line(char* code_raw_, int size, int* toks_size_out) {
+lexTok* lex_line(char* code_raw_, int size, int* toks_size_out, struct Stack *stack) {
     if (size <= 0 || code_raw_[size - 2] != ';') {
         fprintf(stderr, "Lexer Error: Line must end with ';'\n");
         exit(EXIT_FAILURE);
@@ -36,6 +30,8 @@ lexTok* lex_line(char* code_raw_, int size, int* toks_size_out) {
     for (int i = 0; i < split_size; i++) {
         char* curr = code[i];
         if (!curr || *curr == '\0') continue;
+        if (*curr == '~') sprintf(curr, "%d", get_stack(stack));
+        else if (*curr == '^') sprintf(curr, "%d", pop_stack(stack));
 
         lexTok tok;
         tok.val = NULL;
@@ -47,10 +43,6 @@ lexTok* lex_line(char* code_raw_, int size, int* toks_size_out) {
         else if (*curr == '?') {
             tok.type = Spec;
             tok.val = strdup(curr + 1);
-        }
-        else if (isKeyw(curr)) {
-            tok.type = Keyw;
-            tok.val = strdup(curr);
         }
         else if (isInt(curr)) {
             tok.type = Num;

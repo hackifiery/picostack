@@ -6,7 +6,6 @@
 typedef struct {
     char* name;         // Function name (must be freed)
     int paramCount;     // Number of parameters
-    bool isExtern;      // True if builtin/keyword, false if user-defined
     char* fname;        // file it was defined in
     int start;          // addresses of start
     int end;            // and end of def (not including startfunc)
@@ -20,5 +19,3 @@ typedef struct {
 } Call;
 
 Call parse_line(const lexTok* code, const int in_size, bool verbose);
-void free_call(Call* call);
-void print_call(const Call* call);

@@ -25,7 +25,7 @@ void push_stack(struct Stack *stack, int val){
 // for popping value from stack
 int pop_stack(struct Stack *stack){
     if (stack->top < 0) {
-        fprintf(stderr, "Error: Attempt to pop from empty stack.\n");
+        printf("Error: Attempt to pop from empty stack.\n");
         exit(EXIT_FAILURE);
     }
     int a = stack->arr[stack->top];
@@ -37,7 +37,7 @@ int pop_stack(struct Stack *stack){
 // get top val w/o popping
 int get_stack(struct Stack* stack) {
     if (stack->top < 0) {
-        fprintf(stderr, "Error: Attempt to get from empty stack.\n");
+        printf("Error: Attempt to get from empty stack.\n");
         exit(EXIT_FAILURE);
     }
     return stack->arr[stack->top];
@@ -96,8 +96,8 @@ void print_stack(struct Stack *stack, const char *msg) {
 // pops and adds top 2 vals & pushes result
 void add_stack(struct Stack *stack) {
     if (stack->top < 1) {
-        fprintf(stderr, "Error: Stack needs at least 2 items for ADD.\n");
-        return;
+        printf("Error: Stack needs at least 2 items for ADD.\n");
+        exit(EXIT_FAILURE);
     }
     int b = pop_stack(stack);
     int a = pop_stack(stack);
@@ -107,8 +107,8 @@ void add_stack(struct Stack *stack) {
 // pops and subtracts top 2 vals & pushes result
 void sub_stack(struct Stack *stack) {
     if (stack->top < 1) {
-        fprintf(stderr, "Error: Stack needs at least 2 items for SUBTRACT.\n");
-        return;
+        printf("Error: Stack needs at least 2 items for SUBTRACT.\n");
+        exit(EXIT_FAILURE);
     }
     int b = pop_stack(stack);
     int a = pop_stack(stack);

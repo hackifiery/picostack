@@ -67,7 +67,8 @@ int main(int argc, char** argv) {
     }
 
     const char* include_paths[] = {
-        "./include/", // TODO: change later & update interpreter logic
+        "./include/",
+        "/usr/local/include",
         NULL
     };
 
