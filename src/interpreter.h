@@ -13,7 +13,8 @@ callStack init_callStack(void);
 typedef enum {
     NORMAL,
     INCLUDE_CALL,
-    FUNCTION_CALL
+    FUNCTION_CALL,
+    JUMP
 } interpStatus;
 
 interpStatus interpret_line(

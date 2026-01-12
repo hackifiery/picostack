@@ -9,6 +9,7 @@ AX_CHECK_COMPILE_FLAG([-Wno-unused-function], [CFLAGS+=" -Wno-unused-function"])
 AX_CHECK_COMPILE_FLAG([-Werror], [CFLAGS+=" -Werror"])
 AX_CHECK_COMPILE_FLAG([-std=gnu99], [CFLAGS+=" -std=gnu99"])
 AX_CHECK_COMPILE_FLAG([-Wno-unused-result], [CFLAGS+=" -Wno-unused-result"])
+AX_CHECK_COMPILE_FLAG([-Wno-empty-body], [CFLAGS+=" -Wno-empty-body"])
 
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_FILES([Makefile src/Makefile])

@@ -1,4 +1,3 @@
-push 65;
-push ~;
+ps 65;
 putc;
-putc;
+jt 0 1;

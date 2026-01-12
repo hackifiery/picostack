@@ -20,6 +20,8 @@ callStack init_callStack(void) {
     return cs;
 }
 
+
+
 // so many parameters...
 interpStatus interpret_line(
     Call code,
@@ -35,6 +37,7 @@ interpStatus interpret_line(
     bool verbose
 ) {
     trace("\n=== interpret_line BEGIN ===\n");
+
     #define ret_trace(x) trace("=== interpret_line END ===\n"); return x
 
     trace("[ip] current ip = %d\n", *ip);
@@ -262,6 +265,18 @@ interpStatus interpret_line(
         jumps
     ============================ */
 
+    cmd("jt") {
+        trace("[exec] jt");
+        if (params[1] == 1) *ip = params[0];
+        ret_trace(JUMP);
+    }
+
+    cmd("jf") {
+        trace("[exec] jf");
+        if (params[1] != 1) *ip = params[0];
+        ret_trace(JUMP);
+    }
+
     /* ===========================
                 no-op
     ==============================*/
@@ -390,6 +405,7 @@ void run_str(
 
             ip++;  // resume after function call
         }
+        else if (st == JUMP); // handled by itself (no call stack-ing)
     }
 
     // pop file
