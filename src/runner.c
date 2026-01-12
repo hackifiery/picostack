@@ -60,11 +60,17 @@ void run_file(
     free(cs.paths);
 }
 
-int main(void) {
+int main(int argc, char** argv) {
+    if (argc < 2) {
+        fprintf(stderr, "usage: %s <file.pcs>\n", argv[0]);
+        return 1;
+    }
+
     const char* include_paths[] = {
-        "./include/",
+        "./include/", // TODO: change later & update interpreter logic
         NULL
     };
-    run_file("test.pcs", include_paths);
+
+    run_file(argv[1], include_paths);
     return 0;
 }
