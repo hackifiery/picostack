@@ -1,11 +1,8 @@
-startfunc("f");
-psl();
-protr(^);
-ppop();
-putc();
-protl(2);
-ppop();
-putc();
-endfunc();
-
-f(65, 66);
+startfunc "a";
+endfunc;
+startfunc "b";
+a(65);
+ppop;
+putc;
+endfunc;
+b;

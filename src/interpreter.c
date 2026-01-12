@@ -140,6 +140,7 @@ interpStatus interpret_line(
         }
         call_stk->paths = tmp;
 
+        trace("[func caller] clearing parameter stack\n");
         init_stack(pstack); // reset parameters
         
         ret_trace(NORMAL);
@@ -366,11 +367,12 @@ void run_str(
     cs->paths = realloc(cs->paths, (file_idx + 1) * sizeof(char*));
     cs->paths[file_idx] = strdup(fn);
 
-    while (ip < in_size) {
+    while (ip <= in_size) {
         lexTok* lex;
         int lex_size;
         Call par;
-
+        /*bool verbose = true;
+        trace("[runner] running %s.\n", code[ip]);*/
         lex = lex_line(code[ip], strlen(code[ip]) + 1, &lex_size, stack, *in_function);
         par = parse_line(lex, lex_size, false);
 
