@@ -122,6 +122,15 @@ interpStatus interpret_line(
             *in_function = false;
             *curr_function = NULL;
             trace("[state] in_function = false\n");
+            int file_idx = pop_stack(&call_stk->file_stk);
+            *curr_file = call_stk->paths[file_idx];
+            trace("[func caller] returning file=%s\n", *curr_file);
+            char** tmp = realloc(call_stk->paths, (call_stk->file_stk.top + 1) * sizeof(char*));
+            if (!tmp && call_stk->file_stk.top > 0) {
+                perror("realloc");
+                exit(EXIT_FAILURE);
+            }
+            call_stk->paths = tmp;
 
             // continue after endfunc definition
 
@@ -387,8 +396,8 @@ void run_str(
         lexTok* lex;
         int lex_size;
         Call par;
-        /*bool verbose = true;
-        trace("[runner] running %s.\n", code[ip]);*/
+        bool verbose = true;
+        trace("\n[runner] running %s.\n", code[ip]);
         lex = lex_line(code[ip], strlen(code[ip]) + 1, &lex_size, stack, *in_function);
         par = parse_line(lex, lex_size, false);
 
@@ -404,8 +413,8 @@ void run_str(
             include_paths,
             &cs->paths[file_idx],
             cs,
-            false
-            //true
+            //false
+            true
         );
 
         if (st == NORMAL) {
