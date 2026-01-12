@@ -66,13 +66,13 @@ lexTok* lex_line(char* code_raw_, int size, int* toks_size_out) {
             tok.val = strdup(curr);
         }
 
-        toks = safe_realloc(toks, (toksSize + 1) * sizeof(lexTok));
+        toks = realloc(toks, (toksSize + 1) * sizeof(lexTok));
         toks[toksSize++] = tok;
     }
 
     // End-of-call token
     lexTok end = { .type = endCall, .val = NULL };
-    toks = safe_realloc(toks, (toksSize + 1) * sizeof(lexTok));
+    toks = realloc(toks, (toksSize + 1) * sizeof(lexTok));
     toks[toksSize++] = end;
 
     // Cleanup

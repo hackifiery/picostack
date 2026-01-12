@@ -52,7 +52,7 @@ bool isKeyw(char* c) {
 
 
 void strip_char(char* str, const char stripval) {
-    if (str == NULL) return NULL;
+    if (str == NULL) return;
 
     char* read = str;
     char* write = str;

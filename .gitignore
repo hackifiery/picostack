@@ -8,7 +8,7 @@
 *.user
 /picostack/
 /picostack
-/pstk
+/pcs
 /helpers
 /lexer
 /parser
